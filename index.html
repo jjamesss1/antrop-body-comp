@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Composición Corporal ISAK</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- ── Header ─────────────────────────────────────────────────────────── -->
+  <header class="app-header">
+    <div class="app-logo">ISAK <span>Body Comp</span></div>
+
+    <nav class="nav-tabs">
+      <button data-tab="tab-medicion" class="active"><span>📋 </span>Medición</button>
+      <button data-tab="tab-graficas"><span>📊 </span>Gráficas</button>
+      <button data-tab="tab-historial"><span>🗂 </span>Historial</button>
+    </nav>
+
+    <div class="auth-zone">
+      <span id="user-display"></span>
+      <button id="btn-login" class="btn-auth">Iniciar sesión</button>
+      <button id="btn-logout" class="btn-auth danger hidden">Cerrar sesión</button>
+    </div>
+  </header>
+
+  <!-- ── Banner comparación ─────────────────────────────────────────────── -->
+  <div id="banner-anterior" class="hidden"></div>
+
+  <!-- ── Body ───────────────────────────────────────────────────────────── -->
+  <div class="app-body">
+
+    <!-- ══════════ PANEL: MEDICIÓN ══════════════════════════════════════ -->
+    <div data-panel="tab-medicion" id="panel-medicion">
+
+      <!-- Columna izquierda: Formulario -->
+      <div class="form-col">
+        <div class="form-actions">
+          <button class="btn primary" id="btn-guardar">💾 Guardar</button>
+          <button class="btn"         id="btn-descargar">↓ JSON</button>
+          <button class="btn"         id="btn-cargar-medicion">↑ Cargar</button>
+          <button class="btn"         id="btn-cargar-anterior">⇄ Anterior</button>
+          <button class="btn danger"  id="btn-nueva">+ Nueva</button>
+        </div>
+
+        <input type="file" id="input-anterior"  accept=".json" style="display:none" />
+        <input type="file" id="input-medicion"  accept=".json" style="display:none" />
+
+        <form id="form-medicion" autocomplete="off">
+
+          <!-- Datos del sujeto -->
+          <div class="form-section" id="sec-sujeto">
+            <div class="form-section-header" onclick="toggleSection('sec-sujeto')">
+              Datos del sujeto <span class="toggle-icon">▾</span>
+            </div>
+            <div class="form-section-body">
+              <div class="field-row">
+                <div class="field">
+                  <label>Nombre</label>
+                  <input type="text" data-field="meta.nombre" placeholder="Nombre completo" />
+                </div>
+                <div class="field">
+                  <label>Fecha</label>
+                  <input type="date" data-field="meta.fecha" />
+                </div>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label>Edad (años)</label>
+                  <input type="number" data-field="meta.edad" min="10" max="99" step="0.01" placeholder="33.85" />
+                </div>
+                <div class="field">
+                  <label>Sexo</label>
+                  <select data-field="meta.sexo">
+                    <option value="M">Masculino</option>
+                    <option value="F">Femenino</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field-row single">
+                <div class="field">
+                  <label>Notas</label>
+                  <input type="text" data-field="meta.notas" placeholder="Observaciones opcionales" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Básicos -->
+          <div class="form-section" id="sec-basicos">
+            <div class="form-section-header" onclick="toggleSection('sec-basicos')">
+              Básicos <span class="toggle-icon">▾</span>
+            </div>
+            <div class="form-section-body">
+              <div class="field-row triple">
+                <div class="field">
+                  <label>Peso</label>
+                  <input type="number" data-field="basicos.peso_kg" step="0.05" placeholder="80.30" />
+                  <span class="unit">kg</span>
+                </div>
+                <div class="field">
+                  <label>Talla</label>
+                  <input type="number" data-field="basicos.talla_cm" step="0.1" placeholder="180.0" />
+                  <span class="unit">cm</span>
+                </div>
+                <div class="field">
+                  <label>T. sentado</label>
+                  <input type="number" data-field="basicos.talla_sentado_cm" step="0.1" placeholder="93.0" />
+                  <span class="unit">cm</span>
+                </div>
+              </div>
+              <div class="field-row single">
+                <div class="field">
+                  <label>Envergadura <em style="color:var(--text-3)">(opcional)</em></label>
+                  <input type="number" data-field="basicos.envergadura_cm" step="0.1" class="optional" />
+                  <span class="unit">cm</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Diámetros -->
+          <div class="form-section" id="sec-diametros">
+            <div class="form-section-header" onclick="toggleSection('sec-diametros')">
+              Diámetros <span class="toggle-icon">▾</span>
+            </div>
+            <div class="form-section-body">
+              <div class="field-row">
+                <div class="field">
+                  <label>Biacromial</label>
+                  <input type="number" data-field="diametros.biacromial" step="0.1" placeholder="41.50" />
+                  <span class="unit">cm</span>
+                </div>
+                <div class="field">
+                  <label>Tórax transverso</label>
+                  <input type="number" data-field="diametros.torax_transverso" step="0.1" placeholder="31.20" />
+                  <span class="unit">cm</span>
+                </div>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label>Tórax AP</label>
+                  <input type="number" data-field="diametros.torax_anteroposterior" step="0.1" placeholder="17.40" />
+                  <span class="unit">cm</span>
+                </div>
+                <div class="field">
+                  <label>Bi-iliocrestídeo</label>
+                  <input type="number" data-field="diametros.bi_iliocrestideo" step="0.1" placeholder="29.90" />
+                  <span class="unit">cm</span>
+                </div>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label>Humeral biepicondilar</label>
+                  <input type="number" data-field="diametros.humeral_biepicondilar" step="0.01" placeholder="7.30" />
+                  <span class="unit">cm</span>
+                </div>
+                <div class="field">
+                  <label>Femoral biepicondilar</label>
+                  <input type="number" data-field="diametros.femoral_biepicondilar" step="0.01" placeholder="9.50" />
+                  <span class="unit">cm</span>
+                </div>
+              </div>
+              <div class="field-row triple">
+                <div class="field">
+                  <label>Muñeca biest. <em style="color:var(--text-3)">(opc)</em></label>
+                  <input type="number" data-field="diametros.muneca_biestiloideo" step="0.01" class="optional" />
+                  <span class="unit">cm</span>
+                </div>
+                <div class="field">
+                  <label>Tobillo bimal. <em style="color:var(--text-3)">(opc)</em></label>
+                  <input type="number" data-field="diametros.tobillo_bimaleolar" step="0.01" class="optional" />
+                  <span class="unit">cm</span>
+                </div>
+                <div class="field">
+                  <label>Mano <em style="color:var(--text-3)">(opc)</em></label>
+                  <input type="number" data-field="diametros.mano" step="0.01" class="optional" />
+                  <span class="unit">cm</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Perímetros -->
+          <div class="form-section" id="sec-perimetros">
+            <div class="form-section-header" onclick="toggleSection('sec-perimetros')">
+              Perímetros <span class="toggle-icon">▾</span>
+            </div>
+            <div class="form-section-body">
+              <div class="field-row">
+                <div class="field">
+                  <label>Cabeza</label>
+                  <input type="number" data-field="perimetros.cabeza" step="0.1" placeholder="57.00" />
+                  <span class="unit">cm</span>
+                </div>
+                <div class="field">
+                  <label>Cuello</label>
+                  <input type="number" data-field="perimetros.cuello" step="0.1" placeholder="39.00" />
+                  <span class="unit">cm</span>
+                </div>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label>Brazo relajado</label>
+                  <input type="number" data-field="perimetros.brazo_relajado" step="0.1" placeholder="37.30" />
+                  <span class="unit">cm</span>
+                </div>
+                <div class="field">
+                  <label>Brazo flex. tensión</label>
+                  <input type="number" data-field="perimetros.brazo_flexionado_tension" step="0.1" placeholder="39.00" />
+                  <span class="unit">cm</span>
+                </div>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label>Antebrazo</label>
+                  <input type="number" data-field="perimetros.antebrazo" step="0.1" placeholder="29.50" />
+                  <span class="unit">cm</span>
+                </div>
+                <div class="field">
+                  <label>Muñeca</label>
+                  <input type="number" data-field="perimetros.muneca" step="0.1" placeholder="17.50" />
+                  <span class="unit">cm</span>
+                </div>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label>Tórax mesoesternal</label>
+                  <input type="number" data-field="perimetros.torax_mesoesternal" step="0.1" placeholder="104.00" />
+                  <span class="unit">cm</span>
+                </div>
+                <div class="field">
+                  <label>Cintura mínima</label>
+                  <input type="number" data-field="perimetros.cintura_minima" step="0.1" placeholder="83.00" />
+                  <span class="unit">cm</span>
+                </div>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label>Caderas máxima</label>
+                  <input type="number" data-field="perimetros.caderas_maxima" step="0.1" placeholder="100.00" />
+                  <span class="unit">cm</span>
+                </div>
+                <div class="field">
+                  <label>Abdominal máx. <em style="color:var(--text-3)">(opc)</em></label>
+                  <input type="number" data-field="perimetros.abdominal_maxima" step="0.1" class="optional" />
+                  <span class="unit">cm</span>
+                </div>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label>Muslo superior</label>
+                  <input type="number" data-field="perimetros.muslo_superior" step="0.1" placeholder="63.00" />
+                  <span class="unit">cm</span>
+                </div>
+                <div class="field">
+                  <label>Muslo medial</label>
+                  <input type="number" data-field="perimetros.muslo_medial" step="0.1" placeholder="57.00" />
+                  <span class="unit">cm</span>
+                </div>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label>Pantorrilla máxima</label>
+                  <input type="number" data-field="perimetros.pantorrilla_maxima" step="0.1" placeholder="37.00" />
+                  <span class="unit">cm</span>
+                </div>
+                <div class="field">
+                  <label>Tobillo mínima</label>
+                  <input type="number" data-field="perimetros.tobillo_minima" step="0.1" placeholder="22.30" />
+                  <span class="unit">cm</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pliegues -->
+          <div class="form-section" id="sec-pliegues">
+            <div class="form-section-header" onclick="toggleSection('sec-pliegues')">
+              Pliegues cutáneos <span class="toggle-icon">▾</span>
+            </div>
+            <div class="form-section-body">
+              <div class="field-row triple">
+                <div class="field">
+                  <label>Tríceps</label>
+                  <input type="number" data-field="pliegues.triceps" step="0.1" placeholder="6" />
+                  <span class="unit">mm</span>
+                </div>
+                <div class="field">
+                  <label>Subescapular</label>
+                  <input type="number" data-field="pliegues.subescapular" step="0.1" placeholder="8" />
+                  <span class="unit">mm</span>
+                </div>
+                <div class="field">
+                  <label>Bíceps</label>
+                  <input type="number" data-field="pliegues.biceps" step="0.1" placeholder="2" />
+                  <span class="unit">mm</span>
+                </div>
+              </div>
+              <div class="field-row triple">
+                <div class="field">
+                  <label>Cresta ilíaca</label>
+                  <input type="number" data-field="pliegues.cresta_iliaca" step="0.1" placeholder="13" />
+                  <span class="unit">mm</span>
+                </div>
+                <div class="field">
+                  <label>Supraespinal</label>
+                  <input type="number" data-field="pliegues.supraespinal" step="0.1" placeholder="8" />
+                  <span class="unit">mm</span>
+                </div>
+                <div class="field">
+                  <label>Abdominal</label>
+                  <input type="number" data-field="pliegues.abdominal" step="0.1" placeholder="14" />
+                  <span class="unit">mm</span>
+                </div>
+              </div>
+              <div class="field-row triple">
+                <div class="field">
+                  <label>Muslo frontal</label>
+                  <input type="number" data-field="pliegues.muslo_frontal" step="0.1" placeholder="15" />
+                  <span class="unit">mm</span>
+                </div>
+                <div class="field">
+                  <label>Pantorrilla</label>
+                  <input type="number" data-field="pliegues.pantorrilla" step="0.1" placeholder="8" />
+                  <span class="unit">mm</span>
+                </div>
+                <div class="field">
+                  <label>Antebrazo <em style="color:var(--text-3)">(opc)</em></label>
+                  <input type="number" data-field="pliegues.antebrazo" step="0.1" class="optional" />
+                  <span class="unit">mm</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Longitudes (colapsado por defecto) -->
+          <div class="form-section collapsed" id="sec-longitudes">
+            <div class="form-section-header" onclick="toggleSection('sec-longitudes')">
+              Longitudes y alturas <em style="font-weight:400;font-size:.7rem;margin-left:8px;color:var(--text-3)">— todas opcionales</em>
+              <span class="toggle-icon">▾</span>
+            </div>
+            <div class="form-section-body">
+              <div class="field-row">
+                <div class="field"><label>Acromial-radial</label>
+                  <input type="number" data-field="longitudes.acromial_radial_cm" step="0.1" class="optional" /><span class="unit">cm</span></div>
+                <div class="field"><label>Radial-estiloidea</label>
+                  <input type="number" data-field="longitudes.radial_estiloidea_cm" step="0.1" class="optional" /><span class="unit">cm</span></div>
+              </div>
+              <div class="field-row">
+                <div class="field"><label>M. estiloidea-dactilar</label>
+                  <input type="number" data-field="longitudes.medial_estiloidea_dactilar_cm" step="0.1" class="optional" /><span class="unit">cm</span></div>
+                <div class="field"><label>Ilioespinal</label>
+                  <input type="number" data-field="longitudes.ilioespinal_cm" step="0.1" class="optional" /><span class="unit">cm</span></div>
+              </div>
+              <div class="field-row">
+                <div class="field"><label>Trocantérea</label>
+                  <input type="number" data-field="longitudes.trocanterea_cm" step="0.1" class="optional" /><span class="unit">cm</span></div>
+                <div class="field"><label>Trocan.-tibial lat.</label>
+                  <input type="number" data-field="longitudes.trocanterea_tibial_lateral_cm" step="0.1" class="optional" /><span class="unit">cm</span></div>
+              </div>
+              <div class="field-row">
+                <div class="field"><label>Tibial lateral</label>
+                  <input type="number" data-field="longitudes.tibial_lateral_cm" step="0.1" class="optional" /><span class="unit">cm</span></div>
+                <div class="field"><label>Tibial med.-maleol.</label>
+                  <input type="number" data-field="longitudes.tibial_medial_maleolar_medial_cm" step="0.1" class="optional" /><span class="unit">cm</span></div>
+              </div>
+              <div class="field-row single">
+                <div class="field"><label>Pie</label>
+                  <input type="number" data-field="longitudes.pie_cm" step="0.1" class="optional" /><span class="unit">cm</span></div>
+              </div>
+            </div>
+          </div>
+
+        </form><!-- /form-medicion -->
+      </div><!-- /form-col -->
+
+      <!-- Columna derecha: Resultados -->
+      <div class="results-col">
+        <div class="results-grid">
+
+          <!-- IMC + BSA -->
+          <div class="card">
+            <div class="card-title">IMC & Superficie Corporal</div>
+            <div class="num-grid">
+              <div class="num-cell">
+                <span class="label">IMC</span>
+                <span class="value" id="imc-valor">—</span>
+                <span style="font-size:.65rem;color:var(--text-3)">kg/m²</span>
+              </div>
+              <div class="num-cell">
+                <span class="label">Percentil</span>
+                <span class="value" id="imc-percentil">—</span>
+                <span id="imc-diff" class="diff"></span>
+              </div>
+              <div class="num-cell">
+                <span class="label">BSA</span>
+                <span class="value" id="bsa-m2">—</span>
+                <span style="font-size:.65rem;color:var(--text-3)">m²</span>
+              </div>
+              <div class="num-cell">
+                <span class="label">BSA/BM</span>
+                <span class="value" id="bsa-bm">—</span>
+                <span style="font-size:.65rem;color:var(--text-3)">cm²/kg</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Peso ideal + Harris-Benedict -->
+          <div class="card">
+            <div class="card-title">Peso ideal & Metabolismo basal</div>
+            <div class="num-grid">
+              <div class="num-cell">
+                <span class="label">Peso ideal</span>
+                <span class="value" id="pi-ideal">—</span>
+                <span style="font-size:.65rem;color:var(--text-3)">kg</span>
+              </div>
+              <div class="num-cell">
+                <span class="label">Rango min</span>
+                <span class="value" id="pi-min">—</span>
+              </div>
+              <div class="num-cell">
+                <span class="label">Rango max</span>
+                <span class="value" id="pi-max">—</span>
+              </div>
+              <div class="num-cell">
+                <span class="label">MB (Harris-B)</span>
+                <span class="value" id="hb-bmr">—</span>
+                <span style="font-size:.65rem;color:var(--text-3)">kcal</span>
+              </div>
+              <div class="num-cell">
+                <span class="label">Peso cálculo</span>
+                <span class="value" id="hb-peso-calc">—</span>
+                <span style="font-size:.65rem;color:var(--text-3)">kg</span>
+              </div>
+              <div class="num-cell">
+                <span class="label">Δ MB</span>
+                <span id="hb-bmr-diff" class="diff"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ICC -->
+          <div class="card">
+            <div class="card-title">Índice Cintura/Cadera</div>
+            <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:10px;">
+              <span class="big-num"><span id="icc-valor">—</span></span>
+              <span id="icc-diff" class="diff"></span>
+            </div>
+            <div id="icc-riesgo" class="icc-badge" style="background:var(--text-3)">—</div>
+            <div class="icc-bar-wrap">
+              <div class="icc-bar" id="icc-bar"><div class="icc-indicator"></div></div>
+            </div>
+          </div>
+
+          <!-- Somatotipo -->
+          <div class="card" style="grid-column: span 2;">
+            <div class="card-title">Somatotipo Heath-Carter</div>
+            <div style="display:flex;gap:24px;margin-bottom:12px;align-items:center;flex-wrap:wrap;">
+              <div class="num-cell">
+                <span class="label">Endomorfia</span>
+                <span class="value" id="somato-endo" style="color:var(--orange)">—</span>
+              </div>
+              <div class="num-cell">
+                <span class="label">Mesomorfia</span>
+                <span class="value" id="somato-meso" style="color:var(--accent-2)">—</span>
+              </div>
+              <div class="num-cell">
+                <span class="label">Ectomorfia</span>
+                <span class="value" id="somato-ecto" style="color:var(--green)">—</span>
+              </div>
+              <div class="num-cell">
+                <span class="label">X (ecto−endo)</span>
+                <span class="value" id="somato-x">—</span>
+              </div>
+              <div class="num-cell">
+                <span class="label">Y (2·meso−sum)</span>
+                <span class="value" id="somato-y">—</span>
+              </div>
+            </div>
+            <canvas id="canvas-somatocarta" width="560" height="320"></canvas>
+          </div>
+
+          <!-- Kerr 5 componentes -->
+          <div class="card" style="grid-column: span 2;">
+            <div class="card-title">Fraccionamiento Kerr — 5 componentes</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+              <div>
+                <table class="kerr-table">
+                  <thead>
+                    <tr>
+                      <th>Componente</th>
+                      <th>kg</th>
+                      <th>%</th>
+                      <th>Δ</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><span class="kerr-dot" style="background:#f59e0b"></span>Piel</td>
+                      <td id="kerr-piel-kg">—</td>
+                      <td id="kerr-piel-pct">—</td>
+                      <td><span id="kerr-piel-diff" class="diff"></span></td>
+                    </tr>
+                    <tr>
+                      <td><span class="kerr-dot" style="background:#f97316"></span>Adiposa</td>
+                      <td id="kerr-adiposa-kg">—</td>
+                      <td id="kerr-adiposa-pct">—</td>
+                      <td><span id="kerr-adiposa-diff" class="diff"></span></td>
+                    </tr>
+                    <tr>
+                      <td><span class="kerr-dot" style="background:#3b82f6"></span>Muscular</td>
+                      <td id="kerr-muscular-kg">—</td>
+                      <td id="kerr-muscular-pct">—</td>
+                      <td><span id="kerr-muscular-diff" class="diff"></span></td>
+                    </tr>
+                    <tr>
+                      <td><span class="kerr-dot" style="background:#8b5cf6"></span>Ósea</td>
+                      <td id="kerr-osea-kg">—</td>
+                      <td id="kerr-osea-pct">—</td>
+                      <td><span id="kerr-osea-diff" class="diff"></span></td>
+                    </tr>
+                    <tr>
+                      <td><span class="kerr-dot" style="background:#22c55e"></span>Residual</td>
+                      <td id="kerr-residual-kg">—</td>
+                      <td id="kerr-residual-pct">—</td>
+                      <td><span id="kerr-residual-diff" class="diff"></span></td>
+                    </tr>
+                    <tr style="font-size:.75rem;color:var(--text-3)">
+                      <td colspan="2">Diferencia cierre</td>
+                      <td id="kerr-diff-pct">—</td>
+                      <td>%</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="chart-wrap md">
+                <canvas id="canvas-kerr-pie"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Áreas cross-seccionales -->
+          <div class="card">
+            <div class="card-title">Áreas cross-seccionales</div>
+            <div class="areas-grid">
+              <div class="area-cell">
+                <div class="area-name">Brazo</div>
+                <div class="area-musc" id="area-brazo-musc">—</div>
+                <div style="font-size:.65rem;color:var(--text-3)">cm² musc.</div>
+                <div class="area-adip" id="area-brazo-adip">—</div>
+                <div style="font-size:.65rem;color:var(--text-3)">cm² adip.</div>
+              </div>
+              <div class="area-cell">
+                <div class="area-name">Muslo med.</div>
+                <div class="area-musc" id="area-muslo-musc">—</div>
+                <div style="font-size:.65rem;color:var(--text-3)">cm² musc.</div>
+                <div class="area-adip" id="area-muslo-adip">—</div>
+                <div style="font-size:.65rem;color:var(--text-3)">cm² adip.</div>
+              </div>
+              <div class="area-cell">
+                <div class="area-name">Pantorrilla</div>
+                <div class="area-musc" id="area-pantorrilla-musc">—</div>
+                <div style="font-size:.65rem;color:var(--text-3)">cm² musc.</div>
+                <div class="area-adip" id="area-pantorrilla-adip">—</div>
+                <div style="font-size:.65rem;color:var(--text-3)">cm² adip.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sumatorias de pliegues -->
+          <div class="card">
+            <div class="card-title">Sumatorias de pliegues</div>
+            <div class="sumas-row">
+              <span class="sumas-label">Σ3 (sub+supra+abd)</span>
+              <span class="sumas-val" id="sum3p">—</span>
+              <span class="sumas-pct">mm · P<span id="sum3p-percentil">—</span></span>
+              <span id="sum3p-diff" class="diff"></span>
+            </div>
+            <div class="sumas-row">
+              <span class="sumas-label">Σ6 (ISAK 6 sitios)</span>
+              <span class="sumas-val" id="sum6p">—</span>
+              <span class="sumas-pct">mm</span>
+            </div>
+            <div class="sumas-row">
+              <span class="sumas-label">Σ8 (todos)</span>
+              <span class="sumas-val" id="sum8p">—</span>
+              <span class="sumas-pct">mm</span>
+              <span id="sum8p-diff" class="diff"></span>
+            </div>
+          </div>
+
+          <!-- Índices derivados -->
+          <div class="card">
+            <div class="card-title">Índices derivados</div>
+            <div class="num-grid">
+              <div class="num-cell">
+                <span class="label">T.sent./talla</span>
+                <span class="value" id="idx-ts-pct">—</span>
+                <span style="font-size:.65rem;color:var(--text-3)">%</span>
+              </div>
+              <div class="num-cell">
+                <span class="label">Biacr./biili.</span>
+                <span class="value" id="idx-biacr">—</span>
+              </div>
+              <div class="num-cell">
+                <span class="label">Musc./óseo</span>
+                <span class="value" id="idx-musc-oseo">—</span>
+              </div>
+              <div class="num-cell">
+                <span class="label">Adip./musc.</span>
+                <span class="value" id="idx-adip-musc">—</span>
+              </div>
+              <div class="num-cell">
+                <span class="label">Muscularidad</span>
+                <span class="value" id="idx-muscularidad">—</span>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /results-grid -->
+      </div><!-- /results-col -->
+    </div><!-- /panel-medicion -->
+
+    <!-- ══════════ PANEL: GRÁFICAS ════════════════════════════════════════ -->
+    <div data-panel="tab-graficas" class="hidden" style="flex-direction:column;overflow-y:auto;padding:16px;gap:16px;">
+
+      <div class="z-section">
+        <div class="z-section-title">Z-scores PHANTOM — Tabla completa</div>
+        <table class="z-table" style="background:var(--surface);border-radius:var(--radius-lg);overflow:hidden;">
+          <thead>
+            <tr>
+              <th>Variable</th>
+              <th style="text-align:right">Ajustado</th>
+              <th style="text-align:right">Z-score</th>
+              <th style="text-align:right">Δ ajust.</th>
+              <th style="text-align:right">Δ Z</th>
+            </tr>
+          </thead>
+          <tbody id="z-tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="z-section">
+        <div class="z-section-title">Z-scores — Básicos y longitudes</div>
+        <div class="chart-wrap sm"><canvas id="z-chart-basicos"></canvas></div>
+      </div>
+
+      <div class="z-section">
+        <div class="z-section-title">Z-scores — Diámetros</div>
+        <div class="chart-wrap md"><canvas id="z-chart-diametros"></canvas></div>
+      </div>
+
+      <div class="z-section">
+        <div class="z-section-title">Z-scores — Perímetros</div>
+        <div class="chart-wrap lg"><canvas id="z-chart-perimetros"></canvas></div>
+      </div>
+
+      <div class="z-section">
+        <div class="z-section-title">Z-scores — Pliegues cutáneos</div>
+        <div class="chart-wrap md"><canvas id="z-chart-pliegues"></canvas></div>
+      </div>
+
+      <div class="z-section">
+        <div class="z-section-title">Fraccionamiento Kerr — Comparación anterior/actual</div>
+        <div class="chart-wrap md"><canvas id="canvas-kerr-radar"></canvas></div>
+      </div>
+
+    </div><!-- /panel-graficas -->
+
+    <!-- ══════════ PANEL: HISTORIAL ════════════════════════════════════════ -->
+    <div data-panel="tab-historial" class="hidden" id="panel-historial"></div>
+
+  </div><!-- /app-body -->
+</div><!-- /app-shell -->
+
+<!-- ── Modal Auth ─────────────────────────────────────────────────────────── -->
+<div class="modal-overlay hidden" id="modal-auth">
+  <div class="modal-box">
+    <button class="modal-close" id="modal-auth-close">✕</button>
+    <div class="modal-title">Acceder a ISAK Body Comp</div>
+    <div class="modal-tabs">
+      <div class="modal-tab active" id="auth-tab-login">Iniciar sesión</div>
+      <div class="modal-tab" id="auth-tab-register">Registrarse</div>
+    </div>
+    <div id="auth-msg" style="min-height:18px;font-size:.8rem;margin-bottom:8px;"></div>
+
+    <button id="btn-google" type="button" style="
+      display:flex;align-items:center;justify-content:center;gap:10px;
+      width:100%;padding:10px 16px;margin-bottom:16px;
+      background:#fff;color:#3c4043;border:1px solid #dadce0;border-radius:6px;
+      font-size:.9rem;font-weight:500;cursor:pointer;
+    ">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.2l6.7-6.7C35.8 2.5 30.2 0 24 0 14.8 0 6.9 5.4 3 13.3l7.8 6.1C12.6 13.1 17.9 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17z"/><path fill="#FBBC05" d="M10.8 28.6A14.8 14.8 0 0 1 9.5 24c0-1.6.3-3.2.8-4.6L2.5 13.3A24 24 0 0 0 0 24c0 3.8.9 7.4 2.5 10.6l8.3-6z"/><path fill="#34A853" d="M24 48c6.2 0 11.4-2 15.2-5.5l-7.5-5.8c-2 1.4-4.6 2.2-7.7 2.2-6.1 0-11.3-3.6-13.2-8.8l-8.3 6C6.9 42.6 14.8 48 24 48z"/></svg>
+      Continuar con Google
+    </button>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+      <hr style="flex:1;border:none;border-top:1px solid var(--border,#e0e0e0);" />
+      <span style="font-size:.75rem;color:#999;">o usá tu email</span>
+      <hr style="flex:1;border:none;border-top:1px solid var(--border,#e0e0e0);" />
+    </div>
+
+    <form class="auth-form" id="form-login">
+      <input type="email" name="email" placeholder="Email" required />
+      <input type="password" name="password" placeholder="Contraseña" required />
+      <button type="submit">Entrar</button>
+    </form>
+
+    <form class="auth-form hidden" id="form-register">
+      <input type="text" name="nombre" placeholder="Nombre completo" required />
+      <input type="email" name="email" placeholder="Email" required />
+      <input type="password" name="password" placeholder="Contraseña (mín. 6 caracteres)" required minlength="6" />
+      <button type="submit">Crear cuenta</button>
+    </form>
+
+    <p style="font-size:.72rem;color:var(--text-3);margin-top:12px;text-align:center;">
+      En modo demo: registrate con cualquier email para guardar tu historial localmente.
+    </p>
+  </div>
+</div>
+
+<!-- ── Scripts ────────────────────────────────────────────────────────────── -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="js/constants.js"></script>
+<script src="js/calculations.js"></script>
+<script src="js/data.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/ui.js"></script>
+
+<script>
+// ── Colapsibles del formulario ─────────────────────────────────────────────
+function toggleSection(id) {
+  document.getElementById(id)?.classList.toggle('collapsed');
+}
+
+// ── Fix: sincronizar fecha inicial ────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  const fechaInput = document.querySelector('[data-field="meta.fecha"]');
+  if (fechaInput && !fechaInput.value) {
+    fechaInput.value = new Date().toISOString().slice(0, 10);
+  }
+});
+</script>
+</body>
+</html>
