@@ -80,6 +80,37 @@ function authCurrentUser() {
   return _currentUser;
 }
 
+// ── Perfil de usuario ─────────────────────────────────────────────────────────
+
+/** Obtiene el perfil del usuario desde la tabla profiles. */
+async function getProfile(userId) {
+  const { data, error } = await getSupabaseClient()
+    .from('profiles')
+    .select('*')
+    .eq('id', userId)
+    .maybeSingle();
+  if (error) { console.error('Error leyendo perfil:', error.message); return null; }
+  return data;
+}
+
+/** Crea o actualiza el perfil del usuario. */
+async function saveProfile(userId, { sexo, anio_nacimiento }) {
+  const { error } = await getSupabaseClient()
+    .from('profiles')
+    .upsert({ id: userId, sexo, anio_nacimiento }, { onConflict: 'id' });
+  if (error) { console.error('Error guardando perfil:', error.message); return false; }
+  return true;
+}
+
+/** Marca el spotlight como ya visto. */
+async function markSpotlightShown(userId) {
+  const { error } = await getSupabaseClient()
+    .from('profiles')
+    .update({ spotlight_shown: true })
+    .eq('id', userId);
+  if (error) console.error('Error actualizando spotlight:', error.message);
+}
+
 // ── Inicialización ────────────────────────────────────────────────────────────
 
 function initAuth() {
