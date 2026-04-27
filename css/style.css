@@ -1300,7 +1300,7 @@ body {
 .evolucion-metric-delta { font-size:.72rem; font-weight:600; margin-top:2px; font-variant-numeric:tabular-nums; }
 .evolucion-metric-delta.pos { color:var(--green); }
 .evolucion-metric-delta.neg { color:var(--red); }
-.evo-sparkline { width:100%; display:block; margin-top:6px; opacity:.7; }
+.evo-sparkline { width:100%; height:32px; display:block; margin-top:6px; opacity:.7; }
 
 /* Main chart card */
 .evolucion-chart-card {
