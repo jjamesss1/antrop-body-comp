@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AntroLab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     PANTALLA: LOGIN
+══════════════════════════════════════════════════════════════════════ -->
+<div id="screen-login" class="screen">
+  <div class="login-card">
+    <div class="login-logo-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+        <circle cx="12" cy="7" r="4"/>
+      </svg>
+    </div>
+    <h1 class="login-title">AntroLab</h1>
+    <p class="login-subtitle">Análisis antropométrico personal,<br>sin fricción.</p>
+    <button id="btn-google-login" class="btn-google">
+      <svg width="18" height="18" viewBox="0 0 48 48">
+        <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.2l6.7-6.7C35.8 2.5 30.2 0 24 0 14.8 0 6.9 5.4 3 13.3l7.8 6.1C12.6 13.1 17.9 9.5 24 9.5z"/>
+        <path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17z"/>
+        <path fill="#FBBC05" d="M10.8 28.6A14.8 14.8 0 0 1 9.5 24c0-1.6.3-3.2.8-4.6L2.5 13.3A24 24 0 0 0 0 24c0 3.8.9 7.4 2.5 10.6l8.3-6z"/>
+        <path fill="#34A853" d="M24 48c6.2 0 11.4-2 15.2-5.5l-7.5-5.8c-2 1.4-4.6 2.2-7.7 2.2-6.1 0-11.3-3.6-13.2-8.8l-8.3 6C6.9 42.6 14.8 48 24 48z"/>
+      </svg>
+      Continuar con Google
+    </button>
+    <p class="login-terms">
+      Al continuar aceptás los <a href="#">Términos</a> y la <a href="#">Política de privacidad</a>.
+    </p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     PANTALLA: ONBOARDING
+══════════════════════════════════════════════════════════════════════ -->
+<div id="screen-onboarding" class="screen hidden">
+  <div class="onboarding-card">
+    <div class="onboarding-header">
+      <span class="onboarding-step-label">1 / 1</span>
+      <div class="onboarding-progress-bar">
+        <div class="onboarding-progress-fill"></div>
+      </div>
+    </div>
+    <h2 class="onboarding-title">Empecemos por lo básico</h2>
+    <p class="onboarding-subtitle">
+      Estos datos no cambian con cada medición.<br>Los usamos para los cálculos de referencia.
+    </p>
+    <div class="onboarding-section">
+      <label class="onboarding-label">Sexo biológico</label>
+      <div class="sex-cards">
+        <button class="sex-card active" data-value="M" id="sex-card-m">
+          <span class="sex-card-icon">♂</span><span>Masculino</span>
+        </button>
+        <button class="sex-card" data-value="F" id="sex-card-f">
+          <span class="sex-card-icon">♀</span><span>Femenino</span>
+        </button>
+      </div>
+      <p class="onboarding-hint">Necesario para somatotipo, sumatorias y % de grasa.</p>
+    </div>
+    <div class="onboarding-section">
+      <label class="onboarding-label">Año de nacimiento</label>
+      <div class="year-picker-wrap">
+        <div class="year-picker-highlight"></div>
+        <div class="year-picker-list" id="year-picker-list"></div>
+      </div>
+      <p class="onboarding-hint">La edad se actualiza sola en cada medición.</p>
+    </div>
+    <button class="btn-primary" id="btn-onboarding-continue">Continuar</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     APP SHELL
+══════════════════════════════════════════════════════════════════════ -->
+<div id="app-shell" class="hidden">
+
+  <!-- ── Sidebar (desktop) ──────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">A</div>
+      <span class="sidebar-logo-text">AntroLab</span>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="sidebar-nav-item" data-tab="tab-inicio">
+        <svg class="sidebar-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        Inicio
+      </button>
+      <button class="sidebar-nav-item" data-tab="tab-medicion">
+        <svg class="sidebar-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Medición
+      </button>
+      <button class="sidebar-nav-item" data-tab="tab-evolucion">
+        <svg class="sidebar-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+        Evolución
+      </button>
+      <button class="sidebar-nav-item" data-tab="tab-historial">
+        <svg class="sidebar-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+          <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+        </svg>
+        Historial
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-avatar" id="sidebar-avatar">?</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebar-user-name">Tu cuenta</div>
+          <div id="sidebar-user-email" class="sidebar-user-email">tu@email.com</div>
+        </div>
+      </div>
+      <button id="btn-logout" class="btn-logout-full">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <!-- ── Main content ──────────────────────────────────────────── -->
+  <main class="app-main">
+
+    <!-- Banner comparación anterior -->
+    <div id="banner-anterior" class="hidden"></div>
+
+    <!-- ════════ PANEL: INICIO ════════════════════════════════════ -->
+    <div data-panel="tab-inicio" id="panel-inicio" class="hidden">
+      <div class="panel-topbar">
+        <div class="panel-topbar-left">
+          <div class="panel-breadcrumb" id="home-breadcrumb">INICIO</div>
+          <h1 class="panel-title" id="home-greeting">Hola</h1>
+        </div>
+        <div class="panel-topbar-actions">
+          <button class="btn-save" id="home-btn-nueva">+ Nueva medición</button>
+        </div>
+      </div>
+
+      <!-- Empty state (when no measurements) -->
+      <div id="home-empty" class="home-empty hidden">
+        <div class="home-empty-icon">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 3v18h18"/><polyline points="18 9 13 14 8 9 3 14"/>
+          </svg>
+        </div>
+        <div class="home-empty-title">Comenzá a registrar</div>
+        <div class="home-empty-sub">Tu primera medición desbloquea todos los análisis.</div>
+        <button class="btn-primary home-empty-cta" id="home-btn-primera">+ Nueva medición</button>
+      </div>
+
+      <!-- Dashboard (when has measurements) -->
+      <div id="home-dashboard" class="home-body hidden">
+        <!-- Left column: last measurement + trend + recent -->
+        <div class="home-main-col">
+          <!-- Last measurement card -->
+          <div class="home-last-card">
+            <div class="home-last-header">
+              <span class="home-last-label">ÚLTIMA MEDICIÓN</span>
+              <span class="home-last-date" id="home-ultima-fecha">—</span>
+            </div>
+            <div class="home-last-weight-row">
+              <span class="home-last-weight" id="home-ultima-peso">—</span>
+              <span class="home-last-unit">kg</span>
+              <span class="home-last-delta" id="home-ultima-delta"></span>
+            </div>
+            <div class="home-last-metrics">
+              <div class="home-metric">
+                <div class="home-metric-label">% grasa (Kerr)</div>
+                <div class="home-metric-value" id="home-grasa">—</div>
+              </div>
+              <div class="home-metric">
+                <div class="home-metric-label">Σ 6 pliegues</div>
+                <div class="home-metric-value" id="home-sum6">— <span class="home-metric-unit">mm</span></div>
+              </div>
+              <div class="home-metric">
+                <div class="home-metric-label">IMC</div>
+                <div class="home-metric-value" id="home-imc">—</div>
+              </div>
+              <div class="home-metric">
+                <div class="home-metric-label">ICC</div>
+                <div class="home-metric-value" id="home-icc">—</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Trend chart -->
+          <div class="home-trend-card">
+            <div class="home-trend-header">
+              <div>
+                <div class="home-trend-label">TENDENCIA</div>
+                <div class="home-trend-sub" id="home-trend-subtitle">% grasa corporal · 90 días</div>
+              </div>
+              <div class="period-tabs" id="home-period-tabs">
+                <button class="period-tab" data-period="7d">7 d</button>
+                <button class="period-tab" data-period="30d">30 d</button>
+                <button class="period-tab active" data-period="90d">90 d</button>
+                <button class="period-tab" data-period="1y">1 año</button>
+                <button class="period-tab" data-period="all">Todo</button>
+              </div>
+            </div>
+            <div class="chart-wrap" style="height:200px"><canvas id="home-trend-chart"></canvas></div>
+          </div>
+
+          <!-- Recent measurements -->
+          <div class="home-section-card">
+            <div class="home-section-title">MEDICIONES RECIENTES</div>
+            <table class="home-recent-table">
+              <thead><tr>
+                <th>FECHA</th>
+                <th class="num">PESO</th>
+                <th class="num">% GRASA</th>
+                <th class="num">Σ PLIEGUES</th>
+                <th class="num">Δ</th>
+              </tr></thead>
+              <tbody id="home-recent-list"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Right column: quick actions + next steps + highlights -->
+        <div class="home-side-col">
+          <!-- Quick actions -->
+          <div class="home-quick-card">
+            <button class="home-quick-primary" id="home-btn-nueva-2">
+              <div class="home-quick-icon-wrap accent">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+              </div>
+              <div>
+                <div class="home-quick-label">Nueva medición</div>
+                <div class="home-quick-sub">Registrar valores</div>
+              </div>
+            </button>
+            <button class="home-quick-secondary" id="btn-repetir-ultima">
+              <div class="home-quick-icon-wrap muted">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                </svg>
+              </div>
+              <div>
+                <div class="home-quick-label">Repetir última</div>
+                <div class="home-quick-sub">Cargar plantilla</div>
+              </div>
+            </button>
+          </div>
+
+          <!-- Next steps -->
+          <div class="home-section-card">
+            <div class="home-section-title">PRÓXIMOS PASOS</div>
+            <div id="home-next-steps" class="home-next-steps"></div>
+          </div>
+
+          <!-- Cambios destacados -->
+          <div class="home-section-card">
+            <div class="home-section-title">CAMBIOS DESTACADOS (VS HACE 90 D)</div>
+            <div id="home-destacados" class="home-destacados-list"></div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /panel-inicio -->
+
+    <!-- ════════ PANEL: MEDICIÓN ══════════════════════════════════ -->
+    <div data-panel="tab-medicion" id="panel-medicion">
+
+      <!-- ── Sub-view: FORM ─────────────────────────────────────── -->
+      <div id="medicion-view-form">
+        <div class="panel-topbar">
+          <div class="panel-topbar-left">
+            <div class="panel-breadcrumb">MEDICIÓN · <span id="fecha-breadcrumb"></span></div>
+            <h1 class="panel-title">Nueva medición</h1>
+          </div>
+          <div class="panel-topbar-actions">
+            <button class="btn-ghost" id="btn-nueva">+ Nueva</button>
+            <button class="btn-ghost" id="btn-ver-resultados" style="display:none">Ver resultados</button>
+            <button class="btn-save" id="btn-guardar">Guardar</button>
+          </div>
+        </div>
+        <div class="form-meta">
+          <span class="form-meta-hint">Completá los grupos en cualquier orden.</span>
+          <div class="form-meta-right">
+            <div class="autosave-indicator" id="autosave-indicator">
+              <div class="autosave-dot"></div>
+              <span>Guardado</span>
+            </div>
+            <div class="progress-group">
+              <div class="progress-bar-wrap">
+                <div class="progress-bar-fill" id="form-progress-fill"></div>
+              </div>
+              <span class="progress-pct" id="form-progress-pct">0%</span>
+            </div>
+          </div>
+        </div>
+        <div class="form-scroll">
+          <div class="form-actions">
+            <button class="btn" id="btn-descargar">↓ JSON</button>
+            <button class="btn" id="btn-cargar-medicion">↑ Cargar JSON</button>
+            <button class="btn" id="btn-cargar-anterior">⇄ Cargar anterior</button>
+          </div>
+          <input type="file" id="input-anterior" accept=".json" style="display:none" />
+          <input type="file" id="input-medicion" accept=".json" style="display:none" />
+
+          <form id="form-medicion" autocomplete="off">
+
+            <!-- ─── 1. Datos básicos ─────────────────────────── -->
+            <div class="form-section" id="sec-basicos">
+              <div class="form-section-header" onclick="toggleSection('sec-basicos')">
+                <span class="section-number">1</span>
+                <span class="section-title">Datos básicos</span>
+                <span class="section-count">4 campos</span>
+                <span class="toggle-icon">▾</span>
+              </div>
+              <div class="form-section-body">
+                <input type="hidden" data-field="meta.nombre" id="hidden-nombre" />
+                <input type="hidden" data-field="meta.sexo"   id="hidden-sexo" value="M" />
+                <input type="hidden" data-field="meta.notas"  value="" />
+                <div class="field-row">
+                  <div class="field">
+                    <label>Fecha</label>
+                    <div class="field-input-wrap"><input type="date" data-field="meta.fecha" /></div>
+                  </div>
+                  <div class="field">
+                    <label>Edad (años)</label>
+                    <div class="field-input-wrap">
+                      <input type="number" data-field="meta.edad" min="10" max="99" step="0.1" placeholder="—" />
+                      <span class="unit">años</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="field-row">
+                  <div class="field">
+                    <label>Peso</label>
+                    <div class="field-input-wrap">
+                      <input type="number" data-field="basicos.peso_kg" step="0.05" placeholder="80.30" />
+                      <span class="unit">kg</span>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label>Talla</label>
+                    <div class="field-input-wrap">
+                      <input type="number" data-field="basicos.talla_cm" step="0.1" placeholder="180.0" />
+                      <span class="unit">cm</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="field-row">
+                  <div class="field">
+                    <label>Talla sentado</label>
+                    <div class="field-input-wrap">
+                      <input type="number" data-field="basicos.talla_sentado_cm" step="0.1" placeholder="93.0" />
+                      <span class="unit">cm</span>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label>Envergadura <em style="font-style:normal;color:var(--text-3)">(opc.)</em></label>
+                    <div class="field-input-wrap">
+                      <input type="number" data-field="basicos.envergadura_cm" step="0.1" />
+                      <span class="unit">cm</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ─── 2. Pliegues cutáneos ─────────────────────── -->
+            <div class="form-section" id="sec-pliegues">
+              <div class="form-section-header" onclick="toggleSection('sec-pliegues')">
+                <span class="section-number">2</span>
+                <span class="section-title">Pliegues cutáneos</span>
+                <span class="section-count">8 campos</span>
+                <span class="toggle-icon">▾</span>
+              </div>
+              <div class="form-section-body">
+                <div class="field-row">
+                  <div class="field"><label>Tríceps</label><div class="field-input-wrap"><input type="number" data-field="pliegues.triceps" step="0.1" placeholder="6" /><span class="unit">mm</span></div></div>
+                  <div class="field"><label>Subescapular</label><div class="field-input-wrap"><input type="number" data-field="pliegues.subescapular" step="0.1" placeholder="8" /><span class="unit">mm</span></div></div>
+                </div>
+                <div class="field-row">
+                  <div class="field"><label>Bíceps</label><div class="field-input-wrap"><input type="number" data-field="pliegues.biceps" step="0.1" placeholder="2" /><span class="unit">mm</span></div></div>
+                  <div class="field"><label>Cresta ilíaca</label><div class="field-input-wrap"><input type="number" data-field="pliegues.cresta_iliaca" step="0.1" placeholder="13" /><span class="unit">mm</span></div></div>
+                </div>
+                <div class="field-row">
+                  <div class="field"><label>Supraespinal</label><div class="field-input-wrap"><input type="number" data-field="pliegues.supraespinal" step="0.1" placeholder="8" /><span class="unit">mm</span></div></div>
+                  <div class="field"><label>Abdominal</label><div class="field-input-wrap"><input type="number" data-field="pliegues.abdominal" step="0.1" placeholder="14" /><span class="unit">mm</span></div></div>
+                </div>
+                <div class="field-row">
+                  <div class="field"><label>Muslo frontal</label><div class="field-input-wrap"><input type="number" data-field="pliegues.muslo_frontal" step="0.1" placeholder="15" /><span class="unit">mm</span></div></div>
+                  <div class="field"><label>Pantorrilla</label><div class="field-input-wrap"><input type="number" data-field="pliegues.pantorrilla" step="0.1" placeholder="8" /><span class="unit">mm</span></div></div>
+                </div>
+                <div class="field-row single">
+                  <div class="field"><label>Antebrazo <em style="font-style:normal;color:var(--text-3)">(opc.)</em></label><div class="field-input-wrap"><input type="number" data-field="pliegues.antebrazo" step="0.1" /><span class="unit">mm</span></div></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ─── 3. Perímetros ────────────────────────────── -->
+            <div class="form-section" id="sec-perimetros">
+              <div class="form-section-header" onclick="toggleSection('sec-perimetros')">
+                <span class="section-number">3</span>
+                <span class="section-title">Perímetros</span>
+                <span class="section-count">13 campos</span>
+                <span class="toggle-icon">▾</span>
+              </div>
+              <div class="form-section-body">
+                <div class="field-row">
+                  <div class="field"><label>Cabeza</label><div class="field-input-wrap"><input type="number" data-field="perimetros.cabeza" step="0.1" placeholder="57.00" /><span class="unit">cm</span></div></div>
+                  <div class="field"><label>Cuello</label><div class="field-input-wrap"><input type="number" data-field="perimetros.cuello" step="0.1" placeholder="39.00" /><span class="unit">cm</span></div></div>
+                </div>
+                <div class="field-row">
+                  <div class="field"><label>Brazo relajado</label><div class="field-input-wrap"><input type="number" data-field="perimetros.brazo_relajado" step="0.1" placeholder="37.30" /><span class="unit">cm</span></div></div>
+                  <div class="field"><label>Brazo flex. tensión</label><div class="field-input-wrap"><input type="number" data-field="perimetros.brazo_flexionado_tension" step="0.1" placeholder="39.00" /><span class="unit">cm</span></div></div>
+                </div>
+                <div class="field-row">
+                  <div class="field"><label>Antebrazo</label><div class="field-input-wrap"><input type="number" data-field="perimetros.antebrazo" step="0.1" placeholder="29.50" /><span class="unit">cm</span></div></div>
+                  <div class="field"><label>Muñeca</label><div class="field-input-wrap"><input type="number" data-field="perimetros.muneca" step="0.1" placeholder="17.50" /><span class="unit">cm</span></div></div>
+                </div>
+                <div class="field-row">
+                  <div class="field"><label>Tórax mesoesternal</label><div class="field-input-wrap"><input type="number" data-field="perimetros.torax_mesoesternal" step="0.1" placeholder="104.00" /><span class="unit">cm</span></div></div>
+                  <div class="field"><label>Cintura mínima</label><div class="field-input-wrap"><input type="number" data-field="perimetros.cintura_minima" step="0.1" placeholder="83.00" /><span class="unit">cm</span></div></div>
+                </div>
+                <div class="field-row">
+                  <div class="field"><label>Caderas máxima</label><div class="field-input-wrap"><input type="number" data-field="perimetros.caderas_maxima" step="0.1" placeholder="100.00" /><span class="unit">cm</span></div></div>
+                  <div class="field"><label>Abdominal máx. <em style="font-style:normal;color:var(--text-3)">(opc.)</em></label><div class="field-input-wrap"><input type="number" data-field="perimetros.abdominal_maxima" step="0.1" /><span class="unit">cm</span></div></div>
+                </div>
+                <div class="field-row">
+                  <div class="field"><label>Muslo superior</label><div class="field-input-wrap"><input type="number" data-field="perimetros.muslo_superior" step="0.1" placeholder="63.00" /><span class="unit">cm</span></div></div>
+                  <div class="field"><label>Muslo medial</label><div class="field-input-wrap"><input type="number" data-field="perimetros.muslo_medial" step="0.1" placeholder="57.00" /><span class="unit">cm</span></div></div>
+                </div>
+                <div class="field-row">
+                  <div class="field"><label>Pantorrilla máxima</label><div class="field-input-wrap"><input type="number" data-field="perimetros.pantorrilla_maxima" step="0.1" placeholder="37.00" /><span class="unit">cm</span></div></div>
+                  <div class="field"><label>Tobillo mínima</label><div class="field-input-wrap"><input type="number" data-field="perimetros.tobillo_minima" step="0.1" placeholder="22.30" /><span class="unit">cm</span></div></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ─── 4. Diámetros ─────────────────────────────── -->
+            <div class="form-section" id="sec-diametros">
+              <div class="form-section-header" onclick="toggleSection('sec-diametros')">
+                <span class="section-number">4</span>
+                <span class="section-title">Diámetros</span>
+                <span class="section-count">9 campos</span>
+                <span class="toggle-icon">▾</span>
+              </div>
+              <div class="form-section-body">
+                <div class="field-row">
+                  <div class="field"><label>Biacromial</label><div class="field-input-wrap"><input type="number" data-field="diametros.biacromial" step="0.1" placeholder="41.50" /><span class="unit">cm</span></div></div>
+                  <div class="field"><label>Tórax transverso</label><div class="field-input-wrap"><input type="number" data-field="diametros.torax_transverso" step="0.1" placeholder="31.20" /><span class="unit">cm</span></div></div>
+                </div>
+                <div class="field-row">
+                  <div class="field"><label>Tórax AP</label><div class="field-input-wrap"><input type="number" data-field="diametros.torax_anteroposterior" step="0.1" placeholder="17.40" /><span class="unit">cm</span></div></div>
+                  <div class="field"><label>Bi-iliocrestídeo</label><div class="field-input-wrap"><input type="number" data-field="diametros.bi_iliocrestideo" step="0.1" placeholder="29.90" /><span class="unit">cm</span></div></div>
+                </div>
+                <div class="field-row">
+                  <div class="field"><label>Humeral biepicondilar</label><div class="field-input-wrap"><input type="number" data-field="diametros.humeral_biepicondilar" step="0.01" placeholder="7.30" /><span class="unit">cm</span></div></div>
+                  <div class="field"><label>Femoral biepicondilar</label><div class="field-input-wrap"><input type="number" data-field="diametros.femoral_biepicondilar" step="0.01" placeholder="9.50" /><span class="unit">cm</span></div></div>
+                </div>
+                <div class="field-row triple">
+                  <div class="field"><label>Muñeca biest. <em style="font-style:normal;color:var(--text-3)">(opc.)</em></label><div class="field-input-wrap"><input type="number" data-field="diametros.muneca_biestiloideo" step="0.01" /><span class="unit">cm</span></div></div>
+                  <div class="field"><label>Tobillo bimal. <em style="font-style:normal;color:var(--text-3)">(opc.)</em></label><div class="field-input-wrap"><input type="number" data-field="diametros.tobillo_bimaleolar" step="0.01" /><span class="unit">cm</span></div></div>
+                  <div class="field"><label>Mano <em style="font-style:normal;color:var(--text-3)">(opc.)</em></label><div class="field-input-wrap"><input type="number" data-field="diametros.mano" step="0.01" /><span class="unit">cm</span></div></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ─── 5. Longitudes ────────────────────────────── -->
+            <div class="form-section collapsed" id="sec-longitudes">
+              <div class="form-section-header" onclick="toggleSection('sec-longitudes')">
+                <span class="section-number">5</span>
+                <span class="section-title">Longitudes y alturas</span>
+                <span class="section-count" style="color:var(--text-3);font-style:italic">todas opcionales</span>
+                <span class="toggle-icon">▾</span>
+              </div>
+              <div class="form-section-body">
+                <div class="field-row">
+                  <div class="field"><label>Acromial-radial</label><div class="field-input-wrap"><input type="number" data-field="longitudes.acromial_radial_cm" step="0.1" /><span class="unit">cm</span></div></div>
+                  <div class="field"><label>Radial-estiloidea</label><div class="field-input-wrap"><input type="number" data-field="longitudes.radial_estiloidea_cm" step="0.1" /><span class="unit">cm</span></div></div>
+                </div>
+                <div class="field-row">
+                  <div class="field"><label>M. estiloidea-dactilar</label><div class="field-input-wrap"><input type="number" data-field="longitudes.medial_estiloidea_dactilar_cm" step="0.1" /><span class="unit">cm</span></div></div>
+                  <div class="field"><label>Ilioespinal</label><div class="field-input-wrap"><input type="number" data-field="longitudes.ilioespinal_cm" step="0.1" /><span class="unit">cm</span></div></div>
+                </div>
+                <div class="field-row">
+                  <div class="field"><label>Trocantérea</label><div class="field-input-wrap"><input type="number" data-field="longitudes.trocanterea_cm" step="0.1" /><span class="unit">cm</span></div></div>
+                  <div class="field"><label>Trocan.-tibial lat.</label><div class="field-input-wrap"><input type="number" data-field="longitudes.trocanterea_tibial_lateral_cm" step="0.1" /><span class="unit">cm</span></div></div>
+                </div>
+                <div class="field-row">
+                  <div class="field"><label>Tibial lateral</label><div class="field-input-wrap"><input type="number" data-field="longitudes.tibial_lateral_cm" step="0.1" /><span class="unit">cm</span></div></div>
+                  <div class="field"><label>Tibial med.-maleol.</label><div class="field-input-wrap"><input type="number" data-field="longitudes.tibial_medial_maleolar_medial_cm" step="0.1" /><span class="unit">cm</span></div></div>
+                </div>
+                <div class="field-row single">
+                  <div class="field"><label>Pie</label><div class="field-input-wrap"><input type="number" data-field="longitudes.pie_cm" step="0.1" /><span class="unit">cm</span></div></div>
+                </div>
+              </div>
+            </div>
+
+          </form>
+        </div><!-- /form-scroll -->
+
+        <div class="form-footer">
+          <button class="btn-back" id="btn-back-mobile">Atrás</button>
+          <button class="btn-continue" id="btn-guardar-mobile">Guardar</button>
+        </div>
+      </div><!-- /medicion-view-form -->
+
+      <!-- ── Sub-view: RESULTADOS ───────────────────────────────── -->
+      <div id="medicion-view-resultados" class="hidden">
+        <div class="panel-topbar">
+          <div class="panel-topbar-left">
+            <div class="panel-breadcrumb">RESULTADOS · <span id="resultados-breadcrumb"></span></div>
+            <h1 class="panel-title" id="resultados-title">Medición · —</h1>
+          </div>
+          <div class="panel-topbar-actions">
+            <button class="btn-ghost" id="btn-back-resultados">← Volver al formulario</button>
+            <button class="btn-ghost" id="btn-exportar-json-res">↓ JSON</button>
+            <button class="btn-save"  id="btn-ver-evolucion">Ver evolución →</button>
+          </div>
+        </div>
+
+        <div class="resultados-scroll">
+          <!-- 4 top metric cards -->
+          <div class="res-top-cards">
+            <div class="res-top-card">
+              <div class="res-top-label">PESO</div>
+              <div class="res-top-value"><span id="res-peso">—</span> <span class="res-top-unit">kg</span></div>
+              <div class="res-top-delta" id="res-peso-delta"></div>
+            </div>
+            <div class="res-top-card">
+              <div class="res-top-label">IMC</div>
+              <div class="res-top-value"><span id="res-imc">—</span></div>
+              <div class="res-top-badge imc-badge" id="res-imc-badge"></div>
+            </div>
+            <div class="res-top-card">
+              <div class="res-top-label">% GRASA (Kerr)</div>
+              <div class="res-top-value"><span id="res-grasa">—</span> <span class="res-top-unit">%</span></div>
+              <div class="res-top-delta" id="res-grasa-delta"></div>
+            </div>
+            <div class="res-top-card">
+              <div class="res-top-label">Σ 6 PLIEGUES</div>
+              <div class="res-top-value"><span id="res-sum6">—</span> <span class="res-top-unit">mm</span></div>
+              <div class="res-top-delta" id="res-sum6-delta"></div>
+            </div>
+          </div>
+
+          <!-- Row 1: Composición + Somatotipo -->
+          <div class="res-grid-2">
+            <div class="res-card">
+              <div class="res-card-title">Composición corporal · 4 compartimentos</div>
+              <div class="res-comp-bar" id="res-comp-bar"></div>
+              <div class="res-comp-legend" id="res-comp-legend"></div>
+            </div>
+            <div class="res-card">
+              <div class="res-card-title">Somatotipo Heath-Carter</div>
+              <canvas id="res-somatocarta" width="280" height="180" style="width:100%;height:auto;display:block"></canvas>
+              <div class="res-somato-values">
+                <div class="res-somato-item">
+                  <div class="res-somato-label">Endomorfia</div>
+                  <div class="res-somato-val" id="res-endo" style="color:#f97316">—</div>
+                </div>
+                <div class="res-somato-item">
+                  <div class="res-somato-label">Mesomorfia</div>
+                  <div class="res-somato-val" id="res-meso" style="color:#4f46e5">—</div>
+                </div>
+                <div class="res-somato-item">
+                  <div class="res-somato-label">Ectomorfia</div>
+                  <div class="res-somato-val" id="res-ecto" style="color:#10b981">—</div>
+                </div>
+              </div>
+              <div class="res-somato-clasif" id="res-somato-clasif"></div>
+            </div>
+          </div>
+
+          <!-- Row 2: Índices + Pliegues -->
+          <div class="res-grid-2">
+            <div class="res-card">
+              <div class="res-card-title">Índices antropométricos</div>
+              <table class="res-indices-table">
+                <tbody id="res-indices-tbody"></tbody>
+              </table>
+            </div>
+            <div class="res-card">
+              <div class="res-card-title">Pliegues cutáneos <span id="res-pliegues-vs" class="res-vs-label"></span></div>
+              <div id="res-pliegues-list" class="res-pliegues-list"></div>
+            </div>
+          </div>
+
+          <!-- Row 3: Kerr tabla + Sumatorias -->
+          <div class="res-grid-2">
+            <div class="res-card">
+              <div class="res-card-title">Fraccionamiento Kerr · 5 componentes</div>
+              <table class="kerr-table">
+                <thead><tr><th>Componente</th><th class="num">kg</th><th class="num">%</th><th class="num">Δ</th></tr></thead>
+                <tbody>
+                  <tr><td><span class="kerr-dot" style="background:#f59e0b"></span>Piel</td><td class="num" id="res-kerr-piel-kg">—</td><td class="num" id="res-kerr-piel-pct">—</td><td class="num"><span id="res-kerr-piel-diff" class="diff"></span></td></tr>
+                  <tr><td><span class="kerr-dot" style="background:#f97316"></span>Adiposa</td><td class="num" id="res-kerr-adiposa-kg">—</td><td class="num" id="res-kerr-adiposa-pct">—</td><td class="num"><span id="res-kerr-adiposa-diff" class="diff"></span></td></tr>
+                  <tr><td><span class="kerr-dot" style="background:#4f46e5"></span>Muscular</td><td class="num" id="res-kerr-muscular-kg">—</td><td class="num" id="res-kerr-muscular-pct">—</td><td class="num"><span id="res-kerr-muscular-diff" class="diff"></span></td></tr>
+                  <tr><td><span class="kerr-dot" style="background:#8b5cf6"></span>Ósea</td><td class="num" id="res-kerr-osea-kg">—</td><td class="num" id="res-kerr-osea-pct">—</td><td class="num"><span id="res-kerr-osea-diff" class="diff"></span></td></tr>
+                  <tr><td><span class="kerr-dot" style="background:#10b981"></span>Residual</td><td class="num" id="res-kerr-residual-kg">—</td><td class="num" id="res-kerr-residual-pct">—</td><td class="num"><span id="res-kerr-residual-diff" class="diff"></span></td></tr>
+                  <tr style="font-size:.75rem;color:var(--text-3)"><td colspan="2">Diferencia cierre</td><td class="num" id="res-kerr-cierre">—</td><td>%</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="res-card">
+              <div class="res-card-title">Sumatorias e índices derivados</div>
+              <div class="res-sumas">
+                <div class="sumas-row"><span class="sumas-label">Σ3 (sub+supra+abd)</span><span class="sumas-val" id="res-sum3">—</span><span class="sumas-pct">mm · P<span id="res-sum3-pct">—</span></span></div>
+                <div class="sumas-row"><span class="sumas-label">Σ6 (ISAK)</span><span class="sumas-val" id="res-sum6b">—</span><span class="sumas-pct">mm</span></div>
+                <div class="sumas-row"><span class="sumas-label">Σ8</span><span class="sumas-val" id="res-sum8">—</span><span class="sumas-pct">mm</span></div>
+              </div>
+              <div class="res-sumas" style="margin-top:16px">
+                <div class="sumas-row"><span class="sumas-label">Músculo/Óseo</span><span class="sumas-val" id="res-idx-musc-oseo">—</span></div>
+                <div class="sumas-row"><span class="sumas-label">Adiposo/Muscular</span><span class="sumas-val" id="res-idx-adip-musc">—</span></div>
+                <div class="sumas-row"><span class="sumas-label">MB (Harris-Benedict)</span><span class="sumas-val" id="res-hb">—</span><span class="sumas-pct">kcal</span></div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /resultados-scroll -->
+
+        <div class="form-footer">
+          <button class="btn-back" id="btn-back-resultados-mobile">← Volver</button>
+          <button class="btn-continue" id="btn-ver-evolucion-mobile">Ver evolución</button>
+        </div>
+      </div><!-- /medicion-view-resultados -->
+
+    </div><!-- /panel-medicion -->
+
+    <!-- ════════ PANEL: EVOLUCIÓN ═════════════════════════════════ -->
+    <div data-panel="tab-evolucion" id="panel-evolucion" class="hidden">
+      <div class="panel-topbar">
+        <div class="panel-topbar-left">
+          <div class="panel-breadcrumb">EVOLUCIÓN · <span id="evolucion-count">—</span></div>
+          <h1 class="panel-title">Evolución temporal</h1>
+        </div>
+        <div class="panel-topbar-actions">
+          <div class="period-tabs-sm" id="evolucion-period-tabs">
+            <button class="period-tab-sm" data-period="7d">7 D</button>
+            <button class="period-tab-sm" data-period="30d">30 D</button>
+            <button class="period-tab-sm active" data-period="90d">90 D</button>
+            <button class="period-tab-sm" data-period="1y">1 año</button>
+            <button class="period-tab-sm" data-period="all">Todo</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="evolucion-body">
+        <!-- Metric selector cards -->
+        <div class="evolucion-metrics">
+          <div class="evolucion-metric-card active" data-metric="grasa">
+            <div class="evolucion-metric-label">% GRASA</div>
+            <div class="evolucion-metric-value" id="evo-grasa-val">—</div>
+            <div class="evolucion-metric-delta" id="evo-grasa-delta"></div>
+            <canvas id="evo-spark-grasa" class="evo-sparkline" height="32"></canvas>
+          </div>
+          <div class="evolucion-metric-card" data-metric="peso">
+            <div class="evolucion-metric-label">PESO</div>
+            <div class="evolucion-metric-value" id="evo-peso-val">—</div>
+            <div class="evolucion-metric-delta" id="evo-peso-delta"></div>
+            <canvas id="evo-spark-peso" class="evo-sparkline" height="32"></canvas>
+          </div>
+          <div class="evolucion-metric-card" data-metric="sum6">
+            <div class="evolucion-metric-label">Σ PLIEGUES</div>
+            <div class="evolucion-metric-value" id="evo-sum6-val">—</div>
+            <div class="evolucion-metric-delta" id="evo-sum6-delta"></div>
+            <canvas id="evo-spark-sum6" class="evo-sparkline" height="32"></canvas>
+          </div>
+          <div class="evolucion-metric-card" data-metric="muscular">
+            <div class="evolucion-metric-label">MASA MUSCULAR</div>
+            <div class="evolucion-metric-value" id="evo-musc-val">—</div>
+            <div class="evolucion-metric-delta" id="evo-musc-delta"></div>
+            <canvas id="evo-spark-musc" class="evo-sparkline" height="32"></canvas>
+          </div>
+        </div>
+
+        <!-- Main chart card -->
+        <div class="evolucion-chart-card">
+          <div class="evolucion-chart-header">
+            <div>
+              <div class="evolucion-chart-title" id="evo-chart-title">% grasa</div>
+              <div class="evolucion-chart-sub" id="evo-chart-sub">—</div>
+            </div>
+            <div class="evolucion-chart-current">
+              <div class="evolucion-chart-current-label">ACTUAL</div>
+              <div class="evolucion-chart-current-val" id="evo-current-val">—</div>
+              <div class="evolucion-chart-current-delta" id="evo-current-delta"></div>
+            </div>
+          </div>
+          <div class="chart-wrap" style="height:260px"><canvas id="evo-main-chart"></canvas></div>
+        </div>
+
+        <!-- Stats row -->
+        <div class="evolucion-stats">
+          <div class="evolucion-stat">
+            <div class="evolucion-stat-label">PROMEDIO</div>
+            <div class="evolucion-stat-val" id="evo-stat-avg">—</div>
+          </div>
+          <div class="evolucion-stat">
+            <div class="evolucion-stat-label">MÍNIMO</div>
+            <div class="evolucion-stat-val" id="evo-stat-min">—</div>
+          </div>
+          <div class="evolucion-stat">
+            <div class="evolucion-stat-label">MÁXIMO</div>
+            <div class="evolucion-stat-val" id="evo-stat-max">—</div>
+          </div>
+          <div class="evolucion-stat">
+            <div class="evolucion-stat-label">VARIACIÓN</div>
+            <div class="evolucion-stat-val" id="evo-stat-var">—</div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /panel-evolucion -->
+
+    <!-- ════════ PANEL: HISTORIAL ═════════════════════════════════ -->
+    <div data-panel="tab-historial" id="panel-historial" class="hidden">
+      <div class="panel-topbar">
+        <div class="panel-topbar-left">
+          <div class="panel-breadcrumb">HISTORIAL · <span id="historial-count">—</span></div>
+          <h1 class="panel-title">Todas las mediciones</h1>
+        </div>
+        <div class="panel-topbar-actions">
+          <div class="search-wrap">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="historial-search" placeholder="Buscar fecha o nota…" />
+          </div>
+          <button class="btn-save" id="historial-btn-nueva">+ Nueva medición</button>
+        </div>
+      </div>
+
+      <div class="historial-body">
+        <!-- Table -->
+        <div class="historial-table-wrap">
+          <table class="historial-table">
+            <thead>
+              <tr>
+                <th>FECHA</th>
+                <th>NOTAS</th>
+                <th class="num">PESO</th>
+                <th class="num">% GRASA</th>
+                <th class="num">Σ PLIEGUES</th>
+                <th class="num">Δ</th>
+              </tr>
+            </thead>
+            <tbody id="historial-tbody"></tbody>
+          </table>
+          <div id="historial-table-empty" class="empty-msg hidden">No hay mediciones guardadas aún.</div>
+        </div>
+        <!-- Detail panel -->
+        <div class="historial-detail" id="historial-detail">
+          <div class="historial-detail-empty" id="historial-detail-empty">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-3)">
+              <rect x="9" y="9" width="13" height="13" rx="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+            <div style="margin-top:10px;color:var(--text-3);font-size:.82rem">Seleccioná una medición</div>
+          </div>
+          <div id="historial-detail-content" class="hidden">
+            <!-- filled by JS -->
+          </div>
+        </div>
+      </div>
+    </div><!-- /panel-historial -->
+
+  </main><!-- /app-main -->
+
+  <!-- ── Bottom Nav (mobile) ───────────────────────────────────── -->
+  <nav class="bottom-nav">
+    <button class="bottom-nav-item" data-tab="tab-inicio">
+      <svg class="bottom-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+      Inicio
+    </button>
+    <button class="bottom-nav-item" data-tab="tab-medicion">
+      <svg class="bottom-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Medición
+    </button>
+    <button class="bottom-nav-item" data-tab="tab-evolucion">
+      <svg class="bottom-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+      </svg>
+      Evolución
+    </button>
+    <button class="bottom-nav-item" data-tab="tab-historial">
+      <svg class="bottom-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+        <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+      </svg>
+      Historial
+    </button>
+  </nav>
+
+</div><!-- /app-shell -->
+
+<!-- ══════════════════════════════════════════════════════════════════
+     SPOTLIGHT
+══════════════════════════════════════════════════════════════════════ -->
+<div id="spotlight" class="hidden">
+  <div class="spotlight-backdrop" id="spotlight-backdrop"></div>
+  <div class="spotlight-cutout"   id="spotlight-cutout"></div>
+  <div class="spotlight-tooltip"  id="spotlight-tooltip">
+    <div class="spotlight-tooltip-title">Comenzá por aquí</div>
+    <div class="spotlight-tooltip-sub">Cargá tu primera medición para ver tus resultados.</div>
+    <button class="btn-spotlight-ok" id="btn-spotlight-ok">Entendido</button>
+  </div>
+</div>
+
+<!-- ── Scripts ──────────────────────────────────────────────────── -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="js/constants.js"></script>
+<script src="js/calculations.js"></script>
+<script src="js/data.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/ui.js"></script>
+
+<script>
+function toggleSection(id) {
+  document.getElementById(id)?.classList.toggle('collapsed');
+}
+document.addEventListener('DOMContentLoaded', () => {
+  const fechaInput = document.querySelector('[data-field="meta.fecha"]');
+  if (fechaInput && !fechaInput.value) {
+    fechaInput.value = new Date().toISOString().slice(0, 10);
+  }
+  const bc = document.getElementById('fecha-breadcrumb');
+  if (bc) {
+    bc.textContent = new Date().toLocaleDateString('es-AR', {
+      day: 'numeric', month: 'short', year: 'numeric'
+    }).toUpperCase();
+  }
+});
+</script>
+</body>
+</html>
