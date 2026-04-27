@@ -14,7 +14,6 @@ const STATE = {
   resultadosAnt: null,
   debounceTimer: null,
   profile:       null,
-  autosaveTimer: null,
   // Evolución
   evoMetric:     'grasa',    // grasa | peso | sum6 | muscular
   evoPeriod:     '90d',
@@ -389,7 +388,6 @@ function renderHomeRecentList(entries) {
     const lDate = new Date(fechaStr + 'T00:00:00');
     const hoy   = new Date();
     const dias  = Math.round((hoy - lDate) / (1000 * 60 * 60 * 24));
-    const notas = med?.meta?.notas;
 
     const fechaFmt = lDate.toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' });
     const esHoy = dias === 0;
@@ -426,7 +424,6 @@ function renderHomeNextSteps(hist) {
 
   const items = [];
 
-  // Próxima medición (14 días desde la última)
   if (hist.length > 0) {
     const lastFecha = new Date(hist[0].medicion.meta.fecha + 'T00:00:00');
     const nextFecha = new Date(lastFecha.getTime() + 14 * 24 * 60 * 60 * 1000);
@@ -438,7 +435,6 @@ function renderHomeNextSteps(hist) {
       title: 'Próxima medición',
       sub: `${dias > 0 ? 'en ' + dias + ' días' : dias === 0 ? 'hoy' : 'hace ' + Math.abs(dias) + ' días'} · ${fmtd}`,
       action: 'Agendar',
-      onClick: () => switchTab('tab-medicion'),
     });
   }
 
@@ -466,31 +462,15 @@ function renderHomeDestacados(hist) {
   const now  = new Date();
   const cutoff90 = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
   const last = hist[0];
-  // Find closest to 90 days ago
   const old90 = hist.find(e => {
     const d = new Date(e.medicion.meta.fecha + 'T00:00:00');
     return d <= cutoff90;
   }) || hist[hist.length - 1];
 
   const comparisons = [
-    {
-      label: 'Tríceps',
-      curr: last.medicion.pliegues?.triceps,
-      prev: old90.medicion.pliegues?.triceps,
-      unit: 'mm', reverse: true,
-    },
-    {
-      label: 'Abdominal',
-      curr: last.medicion.pliegues?.abdominal,
-      prev: old90.medicion.pliegues?.abdominal,
-      unit: 'mm', reverse: true,
-    },
-    {
-      label: '% grasa',
-      curr: last.resultados?.kerr?.componentes?.adiposa?.pct,
-      prev: old90.resultados?.kerr?.componentes?.adiposa?.pct,
-      unit: '%', reverse: true, decimals: 1,
-    },
+    { label: 'Tríceps',  curr: last.medicion.pliegues?.triceps,  prev: old90.medicion.pliegues?.triceps,  unit: 'mm', reverse: true },
+    { label: 'Abdominal',curr: last.medicion.pliegues?.abdominal,prev: old90.medicion.pliegues?.abdominal,unit: 'mm', reverse: true },
+    { label: '% grasa',  curr: last.resultados?.kerr?.componentes?.adiposa?.pct, prev: old90.resultados?.kerr?.componentes?.adiposa?.pct, unit: '%', reverse: true, decimals: 1 },
   ];
 
   const rows = comparisons.filter(c => c.curr != null && c.prev != null);
@@ -500,13 +480,13 @@ function renderHomeDestacados(hist) {
   }
 
   container.innerHTML = rows.map(c => {
-    const diff    = c.curr - c.prev;
-    const pct     = c.prev !== 0 ? ((diff / c.prev) * 100) : 0;
-    const pos     = c.reverse ? diff <= 0 : diff >= 0;
-    const cls     = diff === 0 ? '' : (pos ? 'pos' : 'neg');
-    const sign    = diff >= 0 ? '+' : '';
-    const dec     = c.decimals ?? 1;
-    const pctStr  = `${sign}${pct.toFixed(0)}%`;
+    const diff   = c.curr - c.prev;
+    const pct    = c.prev !== 0 ? ((diff / c.prev) * 100) : 0;
+    const pos    = c.reverse ? diff <= 0 : diff >= 0;
+    const cls    = diff === 0 ? '' : (pos ? 'pos' : 'neg');
+    const sign   = diff >= 0 ? '+' : '';
+    const dec    = c.decimals ?? 1;
+    const pctStr = `${sign}${pct.toFixed(0)}%`;
     return `<div class="home-destacado">
       <span class="home-destacado-label">${c.label}</span>
       <span class="home-destacado-vals">
@@ -547,11 +527,7 @@ function renderHomeTrendChart(period) {
     subtitle.textContent = `% grasa corporal · ${periodos[period] || '—'}`;
   }
 
-  renderEvolucionChart('home-trend-chart', labels, values, {
-    color: '#4f46e5',
-    fill:  true,
-    minimal: true,
-  });
+  renderEvolucionChart('home-trend-chart', labels, values, { color: '#4f46e5', fill: true, minimal: true });
 }
 
 // ── FORMULARIO ────────────────────────────────────────────────────────────────
@@ -560,13 +536,13 @@ function initForm() {
   const form = document.getElementById('form-medicion');
   if (!form) return;
 
+  // Input: solo recalcula y actualiza progreso. NO guarda automáticamente.
   form.addEventListener('input', () => {
     clearTimeout(STATE.debounceTimer);
     STATE.debounceTimer = setTimeout(() => {
       STATE.medicion = medicionDesdeFormulario(form);
       recalcular();
       updateProgress();
-      scheduleAutosave();
     }, 200);
   });
 
@@ -612,7 +588,6 @@ function resetForm() {
   showForm();
   recalcular();
   updateProgress();
-  // Hide "ver resultados" button
   const btn = document.getElementById('btn-ver-resultados');
   if (btn) btn.style.display = 'none';
 }
@@ -622,42 +597,18 @@ async function guardarMedicion() {
   if (!authCurrentUser()) { showToast('Iniciá sesión para guardar', 'error'); return; }
   const ok = await guardarEnHistorial(STATE.medicion, STATE.resultados);
   if (ok) {
-    showAutosaveIndicator();
     showToast('Guardado ✓');
     // Show "ver resultados" button
     const btn = document.getElementById('btn-ver-resultados');
     if (btn) btn.style.display = '';
     // Switch to resultados sub-view
     showResultados();
-    // Refresh home
+    // Refresh home & historial
     renderHome();
     renderHistorialTable();
   } else {
     showToast('Error al guardar', 'error');
   }
-}
-
-// ── AUTO-SAVE ─────────────────────────────────────────────────────────────────
-
-function scheduleAutosave() {
-  if (!authCurrentUser()) return;
-  clearTimeout(STATE.autosaveTimer);
-  STATE.autosaveTimer = setTimeout(async () => {
-    if (!STATE.medicion) return;
-    const ok = await guardarEnHistorial(STATE.medicion, STATE.resultados);
-    if (ok) {
-      showAutosaveIndicator();
-      renderHome();
-      renderHistorialTable();
-    }
-  }, 1500);
-}
-
-function showAutosaveIndicator() {
-  const el = document.getElementById('autosave-indicator');
-  if (!el) return;
-  el.classList.add('visible');
-  setTimeout(() => el.classList.remove('visible'), 2500);
 }
 
 // ── PROGRESS ──────────────────────────────────────────────────────────────────
@@ -691,9 +642,7 @@ function renderResultadosPanel(res, med, resAnt, medAnt) {
   const fechaStr = med?.meta?.fecha;
   const bc       = document.getElementById('resultados-breadcrumb');
   const title    = document.getElementById('resultados-title');
-  if (bc && fechaStr) {
-    bc.textContent = fechaStr.toUpperCase();
-  }
+  if (bc && fechaStr) bc.textContent = fechaStr.toUpperCase();
   if (title && fechaStr) {
     const d = new Date(fechaStr + 'T00:00:00');
     title.textContent = 'Medición · ' + d.toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -709,46 +658,35 @@ function renderResultadosPanel(res, med, resAnt, medAnt) {
   if (imcEl) imcEl.textContent = imc?.toFixed(1) ?? '—';
   if (badgeEl) {
     const cl = imcClasificacion(imc);
-    badgeEl.textContent  = cl.label;
-    badgeEl.className    = `res-top-badge imc-badge ${cl.cls}`;
+    badgeEl.textContent = cl.label;
+    badgeEl.className   = `res-top-badge imc-badge ${cl.cls}`;
   }
 
-  const grasa     = res.kerr?.componentes?.adiposa?.pct;
+  const grasa    = res.kerr?.componentes?.adiposa?.pct;
   const grasaPrev = resAnt?.kerr?.componentes?.adiposa?.pct;
   _setResCard('res-grasa', grasa?.toFixed(1) ?? '—', 'res-grasa-delta', grasa, grasaPrev, true);
 
-  const sum6    = res.sumas?.sum6;
+  const sum6     = res.sumas?.sum6;
   const sum6Prev = resAnt?.sumas?.sum6;
   _setResCard('res-sum6', sum6?.toFixed(0) ?? '—', 'res-sum6-delta', sum6, sum6Prev, true);
 
-  // Composición corporal
   renderResComposicion(res.kerr);
-
-  // Somatotipo
   renderResSomatotipo(res.somato, resAnt?.somato);
-
-  // Índices
   renderResIndices(res, med);
-
-  // Pliegues
   renderResPliegues(med, medAnt);
-
-  // Kerr tabla
   renderResKerrTabla(res.kerr, resAnt?.kerr);
 
-  // Sumatorias
   const sum3 = res.sumas?.sum3;
   const sum8 = res.sumas?.sum8;
   const p3   = res.sumas?.percentil3;
-  setText2('res-sum3', sum3?.toFixed(0));
-  setText2('res-sum3-pct', p3?.toFixed(1));
-  setText2('res-sum6b', sum6?.toFixed(0));
-  setText2('res-sum8', sum8?.toFixed(0));
+  setText2('res-sum3',       sum3?.toFixed(0));
+  setText2('res-sum3-pct',   p3?.toFixed(1));
+  setText2('res-sum6b',      sum6?.toFixed(0));
+  setText2('res-sum8',       sum8?.toFixed(0));
   setText2('res-idx-musc-oseo', res.indices?.musculo_oseo?.toFixed(3));
   setText2('res-idx-adip-musc', res.indices?.adiposo_muscular?.toFixed(3));
-  setText2('res-hb', res.hb?.bmr_kcal?.toFixed(0));
+  setText2('res-hb',         res.hb?.bmr_kcal?.toFixed(0));
 
-  // Comparación banner
   if (medAnt) renderComparacionBanner(medAnt);
 }
 
@@ -806,9 +744,7 @@ function renderResSomatotipo(somato, somatoAnt) {
   setText2('res-meso', somato?.meso?.toFixed(1));
   setText2('res-ecto', somato?.ecto?.toFixed(1));
   const clasifEl = document.getElementById('res-somato-clasif');
-  if (clasifEl && somato) {
-    clasifEl.textContent = somatotipoClasificacion(somato.endo, somato.meso, somato.ecto);
-  }
+  if (clasifEl && somato) clasifEl.textContent = somatotipoClasificacion(somato.endo, somato.meso, somato.ecto);
   renderSomatocarta('res-somatocarta', somato, somatoAnt, true);
 }
 
@@ -825,36 +761,14 @@ function renderResIndices(res, med) {
   const sex   = med?.meta?.sexo || 'M';
 
   const rows = [
-    {
-      label: 'IMC',
-      unit:  'Normal (18.5–24.9)',
-      val:   imc?.toFixed(1),
-      badge: imc ? imcClasificacion(imc) : null,
-    },
-    {
-      label: 'ICC (cintura/cadera)',
-      unit:  icc ? `Umbral <0.90` : '',
-      val:   icc?.toFixed(3),
-      badge: res.icc ? { label: riesgoLabel(res.icc.riesgo), cls: riesgoCls(res.icc.riesgo) } : null,
-    },
-    {
-      label: 'ICA (cintura/altura)',
-      unit:  'Saludable (<0.50)',
-      val:   ica?.toFixed(3),
-      badge: ica ? icaClasificacion(ica) : null,
-    },
-    {
-      label: '% Grasa (Kerr)',
-      unit:  sex === 'M' ? 'Atlético 6–13%' : 'Atlética 14–20%',
-      val:   grasa?.toFixed(1),
-      badge: grasa ? grasaClasificacion(grasa, sex) : null,
-    },
+    { label: 'IMC',             unit: 'Normal (18.5–24.9)',    val: imc?.toFixed(1),  badge: imc ? imcClasificacion(imc) : null },
+    { label: 'ICC (cin./cad.)', unit: icc ? 'Umbral <0.90' : '', val: icc?.toFixed(3),  badge: res.icc ? { label: riesgoLabel(res.icc.riesgo), cls: riesgoCls(res.icc.riesgo) } : null },
+    { label: 'ICA (cin./alt.)', unit: 'Saludable (<0.50)',     val: ica?.toFixed(3),  badge: ica ? icaClasificacion(ica) : null },
+    { label: '% Grasa (Kerr)', unit: sex === 'M' ? 'Atlético 6–13%' : 'Atlética 14–20%', val: grasa?.toFixed(1), badge: grasa ? grasaClasificacion(grasa, sex) : null },
   ];
 
   tbody.innerHTML = rows.map(r => {
-    const badgeHtml = r.badge
-      ? `<span class="idx-badge ${r.badge.cls}">${r.badge.label}</span>`
-      : '';
+    const badgeHtml = r.badge ? `<span class="idx-badge ${r.badge.cls}">${r.badge.label}</span>` : '';
     return `<tr>
       <td>${r.label}<br><small style="color:var(--text-3);font-size:.7rem">${r.unit}</small></td>
       <td>${r.val ?? '—'}</td>
@@ -881,10 +795,7 @@ function renderResPliegues(med, medAnt) {
     { key: 'pantorrilla',  label: 'Pantorrilla' },
   ];
 
-  const maxVal = Math.max(
-    ...PLIEGUES.map(p => med.pliegues?.[p.key] ?? 0),
-    1
-  );
+  const maxVal = Math.max(...PLIEGUES.map(p => med.pliegues?.[p.key] ?? 0), 1);
 
   container.innerHTML = PLIEGUES.map(p => {
     const curr = med.pliegues?.[p.key];
@@ -893,9 +804,7 @@ function renderResPliegues(med, medAnt) {
     const pct   = Math.min(100, (curr / maxVal) * 100);
     const delta = (prev != null) ? (curr - prev) : null;
     const dStr  = delta != null
-      ? `<span style="font-size:.7rem;color:${delta > 0 ? 'var(--red)' : delta < 0 ? 'var(--green)' : 'var(--text-3)'}">
-          ${delta >= 0 ? '+' : ''}${delta.toFixed(1)}
-         </span>` : '';
+      ? `<span style="font-size:.7rem;color:${delta > 0 ? 'var(--red)' : delta < 0 ? 'var(--green)' : 'var(--text-3)'}">${delta >= 0 ? '+' : ''}${delta.toFixed(1)}</span>` : '';
     const prevStr = prev != null ? `<span class="res-pliegue-prev">últ. ${prev.toFixed(1)}</span>` : '';
     return `<div class="res-pliegue">
       <div class="res-pliegue-header">
@@ -914,8 +823,7 @@ function renderResPliegues(med, medAnt) {
 
 function renderResKerrTabla(kerr, kerrAnt) {
   if (!kerr?.componentes) return;
-  const comps = ['piel', 'adiposa', 'muscular', 'osea', 'residual'];
-  for (const k of comps) {
+  for (const k of ['piel', 'adiposa', 'muscular', 'osea', 'residual']) {
     const c = kerr.componentes[k];
     if (!c) continue;
     setText2(`res-kerr-${k}-kg`,  c.kg?.toFixed(3));
@@ -934,66 +842,51 @@ function renderResKerrTabla(kerr, kerrAnt) {
 
 function imcClasificacion(imc) {
   if (!imc) return { label: '—', cls: 'neutral' };
-  if (imc < 18.5) return { label: 'Bajo peso',   cls: 'low' };
-  if (imc < 25)   return { label: 'Normal',       cls: 'ok' };
-  if (imc < 30)   return { label: 'Sobrepeso',    cls: 'warn' };
-  return              { label: 'Obesidad',        cls: 'bad' };
+  if (imc < 18.5) return { label: 'Bajo peso',  cls: 'low' };
+  if (imc < 25)   return { label: 'Normal',      cls: 'ok' };
+  if (imc < 30)   return { label: 'Sobrepeso',   cls: 'warn' };
+  return              { label: 'Obesidad',       cls: 'bad' };
 }
-
 function icaClasificacion(ica) {
-  if (ica < 0.43) return { label: 'Bajo',        cls: 'warn' };
-  if (ica < 0.50) return { label: 'Saludable',   cls: 'ok' };
-  if (ica < 0.60) return { label: 'Elevado',     cls: 'warn' };
-  return              { label: 'Muy elevado',    cls: 'bad' };
+  if (ica < 0.43) return { label: 'Bajo',       cls: 'warn' };
+  if (ica < 0.50) return { label: 'Saludable',  cls: 'ok' };
+  if (ica < 0.60) return { label: 'Elevado',    cls: 'warn' };
+  return              { label: 'Muy elevado',   cls: 'bad' };
 }
-
 function grasaClasificacion(pct, sexo) {
   if (sexo === 'M') {
-    if (pct < 6)  return { label: 'Esencial',  cls: 'warn' };
-    if (pct < 14) return { label: 'Atlético',  cls: 'ok' };
-    if (pct < 18) return { label: 'Fitness',   cls: 'ok' };
-    if (pct < 25) return { label: 'Promedio',  cls: 'warn' };
-    return            { label: 'Elevado',     cls: 'bad' };
+    if (pct < 6)  return { label: 'Esencial', cls: 'warn' };
+    if (pct < 14) return { label: 'Atlético', cls: 'ok' };
+    if (pct < 18) return { label: 'Fitness',  cls: 'ok' };
+    if (pct < 25) return { label: 'Promedio', cls: 'warn' };
+    return            { label: 'Elevado',    cls: 'bad' };
   } else {
-    if (pct < 14) return { label: 'Esencial',  cls: 'warn' };
-    if (pct < 21) return { label: 'Atlética',  cls: 'ok' };
-    if (pct < 25) return { label: 'Fitness',   cls: 'ok' };
-    if (pct < 32) return { label: 'Promedio',  cls: 'warn' };
-    return            { label: 'Elevado',     cls: 'bad' };
+    if (pct < 14) return { label: 'Esencial', cls: 'warn' };
+    if (pct < 21) return { label: 'Atlética', cls: 'ok' };
+    if (pct < 25) return { label: 'Fitness',  cls: 'ok' };
+    if (pct < 32) return { label: 'Promedio', cls: 'warn' };
+    return            { label: 'Elevado',    cls: 'bad' };
   }
 }
-
 function riesgoLabel(r) {
   return { bajo: 'Bajo riesgo', moderado: 'Moderado', alto: 'Alto', muy_alto: 'Muy alto' }[r] || r;
 }
 function riesgoCls(r) {
   return { bajo: 'ok', moderado: 'warn', alto: 'bad', muy_alto: 'bad' }[r] || 'warn';
 }
-
 function somatotipoClasificacion(endo, meso, ecto) {
   if (endo == null || meso == null || ecto == null) return '—';
   const m = Math.max(endo, meso, ecto);
   if (m - Math.min(endo, meso, ecto) <= 1) return 'Central';
-  if (meso === m) {
-    if (endo > ecto) return 'Endo-mesomorfo';
-    if (ecto > endo) return 'Ecto-mesomorfo';
-    return 'Mesomorfo equilibrado';
-  }
-  if (endo === m) {
-    if (meso > ecto) return 'Meso-endomorfo';
-    return 'Endomorfo equilibrado';
-  }
-  if (ecto === m) {
-    if (meso > endo) return 'Meso-ectomorfo';
-    return 'Ectomorfo equilibrado';
-  }
+  if (meso === m) return endo > ecto ? 'Endo-mesomorfo' : ecto > endo ? 'Ecto-mesomorfo' : 'Mesomorfo equilibrado';
+  if (endo === m) return meso > ecto ? 'Meso-endomorfo' : 'Endomorfo equilibrado';
+  if (ecto === m) return meso > endo ? 'Meso-ectomorfo' : 'Ectomorfo equilibrado';
   return '—';
 }
 
 // ── PANEL: EVOLUCIÓN ──────────────────────────────────────────────────────────
 
 function initEvolucionPanel() {
-  // Metric cards
   document.querySelectorAll('.evolucion-metric-card').forEach(card => {
     card.addEventListener('click', () => {
       document.querySelectorAll('.evolucion-metric-card').forEach(c => c.classList.remove('active'));
@@ -1003,7 +896,6 @@ function initEvolucionPanel() {
     });
   });
 
-  // Period tabs
   document.getElementById('evolucion-period-tabs')?.addEventListener('click', (e) => {
     const btn = e.target.closest('.period-tab-sm');
     if (!btn) return;
@@ -1015,11 +907,10 @@ function initEvolucionPanel() {
 }
 
 function renderEvolucionPanel() {
-  const hist = obtenerHistorial();
+  const hist   = obtenerHistorial();
   const sorted = [...hist].sort((a, b) =>
     new Date(a.medicion.meta.fecha) - new Date(b.medicion.meta.fecha));
 
-  // Count label
   const countEl = document.getElementById('evolucion-count');
   if (countEl) countEl.textContent = `${hist.length} MEDICIÓN${hist.length !== 1 ? 'ES' : ''}`;
 
@@ -1028,36 +919,11 @@ function renderEvolucionPanel() {
   const last = hist[0];
   const prev = hist[1] || null;
 
-  // Metric cards: current value + delta + sparkline
   const METRICS = {
-    grasa: {
-      valId:   'evo-grasa-val',
-      deltaId: 'evo-grasa-delta',
-      sparkId: 'evo-spark-grasa',
-      getVal:  e => e.resultados?.kerr?.componentes?.adiposa?.pct,
-      fmt:     v => v?.toFixed(1) + ' %',
-    },
-    peso: {
-      valId:   'evo-peso-val',
-      deltaId: 'evo-peso-delta',
-      sparkId: 'evo-spark-peso',
-      getVal:  e => e.medicion?.basicos?.peso_kg,
-      fmt:     v => v?.toFixed(2) + ' kg',
-    },
-    sum6: {
-      valId:   'evo-sum6-val',
-      deltaId: 'evo-sum6-delta',
-      sparkId: 'evo-spark-sum6',
-      getVal:  e => e.resultados?.sumas?.sum6,
-      fmt:     v => v?.toFixed(0) + ' mm',
-    },
-    muscular: {
-      valId:   'evo-musc-val',
-      deltaId: 'evo-musc-delta',
-      sparkId: 'evo-spark-musc',
-      getVal:  e => e.resultados?.kerr?.componentes?.muscular?.kg,
-      fmt:     v => v?.toFixed(1) + ' kg',
-    },
+    grasa:    { valId: 'evo-grasa-val', deltaId: 'evo-grasa-delta', sparkId: 'evo-spark-grasa', getVal: e => e.resultados?.kerr?.componentes?.adiposa?.pct,  fmt: v => v?.toFixed(1) + ' %'  },
+    peso:     { valId: 'evo-peso-val',  deltaId: 'evo-peso-delta',  sparkId: 'evo-spark-peso',  getVal: e => e.medicion?.basicos?.peso_kg,                   fmt: v => v?.toFixed(2) + ' kg' },
+    sum6:     { valId: 'evo-sum6-val',  deltaId: 'evo-sum6-delta',  sparkId: 'evo-spark-sum6',  getVal: e => e.resultados?.sumas?.sum6,                      fmt: v => v?.toFixed(0) + ' mm' },
+    muscular: { valId: 'evo-musc-val',  deltaId: 'evo-musc-delta',  sparkId: 'evo-spark-musc',  getVal: e => e.resultados?.kerr?.componentes?.muscular?.kg,  fmt: v => v?.toFixed(1) + ' kg' },
   };
 
   for (const [key, m] of Object.entries(METRICS)) {
@@ -1072,11 +938,8 @@ function renderEvolucionPanel() {
       dEl.className = `evolucion-metric-delta ${d > 0 ? 'pos' : d < 0 ? 'neg' : ''}`;
     }
 
-    // Sparkline
     const sparkData = sorted.map(e => m.getVal(e)).filter(v => v != null);
-    if (sparkData.length > 1) {
-      renderSparkline(m.sparkId, sparkData);
-    }
+    if (sparkData.length > 1) renderSparkline(m.sparkId, sparkData);
   }
 
   renderEvolucionChart_main();
@@ -1090,8 +953,8 @@ function renderEvolucionChart_main() {
     new Date(a.medicion.meta.fecha) - new Date(b.medicion.meta.fecha));
 
   const now = new Date();
-  let cutoff = null;
   const period = STATE.evoPeriod;
+  let cutoff = null;
   if (period === '7d')  cutoff = new Date(now - 7   * 864e5);
   if (period === '30d') cutoff = new Date(now - 30  * 864e5);
   if (period === '90d') cutoff = new Date(now - 90  * 864e5);
@@ -1108,7 +971,7 @@ function renderEvolucionChart_main() {
     muscular: { getVal: e => e.resultados?.kerr?.componentes?.muscular?.kg,  label: 'Masa muscular', unit: 'kg', color: '#8b5cf6' },
   };
 
-  const m = METRICS[STATE.evoMetric] || METRICS.grasa;
+  const m      = METRICS[STATE.evoMetric] || METRICS.grasa;
   const labels = filtered.map(e => {
     const d = new Date(e.medicion.meta.fecha + 'T00:00:00');
     return d.toLocaleDateString('es-AR', { day: '2-digit', month: 'short' });
@@ -1116,13 +979,11 @@ function renderEvolucionChart_main() {
   const values = filtered.map(e => m.getVal(e) ?? null);
   const valid  = values.filter(v => v != null);
 
-  // Update chart title
   setText2('evo-chart-title', m.label);
   const countEl = document.getElementById('evo-chart-sub');
   const pLabel  = { '7d':'7 días','30d':'30 días','90d':'90 días','1y':'1 año','all':'todo el historial' }[period] || '';
   if (countEl) countEl.textContent = `${filtered.length} mediciones · ${pLabel}`;
 
-  // Current val
   const lastVal = values.filter(v => v != null).pop();
   const prevVal = values.slice(0, -1).filter(v => v != null).pop();
   setText2('evo-current-val', lastVal != null ? lastVal.toFixed(1) + ' ' + m.unit : '—');
@@ -1133,22 +994,83 @@ function renderEvolucionChart_main() {
     dEl.className = `evolucion-chart-current-delta ${d > 0 ? 'pos' : d < 0 ? 'neg' : ''}`;
   }
 
-  // Stats
   if (valid.length > 0) {
     const avg = valid.reduce((a, b) => a + b, 0) / valid.length;
     const min = Math.min(...valid);
     const max = Math.max(...valid);
-    const variance = max - min;
     setText2('evo-stat-avg', avg.toFixed(1) + ' ' + m.unit);
     setText2('evo-stat-min', min.toFixed(1) + ' ' + m.unit);
     setText2('evo-stat-max', max.toFixed(1) + ' ' + m.unit);
-    setText2('evo-stat-var', variance.toFixed(1) + ' ' + m.unit);
+    setText2('evo-stat-var', (max - min).toFixed(1) + ' ' + m.unit);
   }
 
-  renderEvolucionChart('evo-main-chart', labels, values, {
-    color: m.color,
-    fill: true,
-    unit: m.unit,
+  renderEvolucionChart('evo-main-chart', labels, values, { color: m.color, fill: true, unit: m.unit });
+}
+
+// ── EVOLUCIÓN CHART (Chart.js) ────────────────────────────────────────────────
+
+const _evoCharts = {};
+
+function renderEvolucionChart(canvasId, labels, values, opts = {}) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+
+  if (_evoCharts[canvasId]) { _evoCharts[canvasId].destroy(); delete _evoCharts[canvasId]; }
+
+  const color   = opts.color || '#4f46e5';
+  const minimal = opts.minimal || false;
+  const unit    = opts.unit || '';
+
+  const validPairs = labels.map((l, i) => ({ l, v: values[i] })).filter(p => p.v != null);
+  if (validPairs.length < 2) return;
+
+  _evoCharts[canvasId] = new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: validPairs.map(p => p.l),
+      datasets: [{
+        data: validPairs.map(p => p.v),
+        borderColor: color,
+        borderWidth: 2,
+        pointRadius: minimal ? 0 : 3,
+        pointHoverRadius: minimal ? 3 : 5,
+        tension: 0.3,
+        fill: opts.fill ? { target: 'origin', above: color + '18' } : false,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 300 },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ctx.parsed.y.toFixed(1) + (unit ? ' ' + unit : '') } },
+      },
+      scales: {
+        x: { display: !minimal, ticks: { font: { size: 11 }, maxTicksLimit: 6 }, grid: { display: false } },
+        y: { display: !minimal, ticks: { font: { size: 11 }, maxTicksLimit: 5 }, grid: { color: '#f0f0f0' } },
+      },
+    },
+  });
+}
+
+function renderSparkline(canvasId, values) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas || values.length < 2) return;
+  if (_evoCharts[canvasId]) { _evoCharts[canvasId].destroy(); delete _evoCharts[canvasId]; }
+  _evoCharts[canvasId] = new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: values.map((_, i) => i),
+      datasets: [{ data: values, borderColor: '#4f46e5', borderWidth: 1.5, pointRadius: 0, tension: 0.3, fill: false }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false,
+      plugins: { legend: { display: false }, tooltip: { enabled: false } },
+      scales: { x: { display: false }, y: { display: false } },
+    },
   });
 }
 
@@ -1164,13 +1086,13 @@ function initHistorialPanel() {
 }
 
 function renderHistorialTable() {
-  const hist = obtenerHistorial();
+  const hist   = obtenerHistorial();
   const tbody  = document.getElementById('historial-tbody');
   const empty  = document.getElementById('historial-table-empty');
   const countEl = document.getElementById('historial-count');
   if (!tbody) return;
 
-  const filter  = STATE.histFilter;
+  const filter   = STATE.histFilter;
   const filtered = filter
     ? hist.filter(e => {
         const fecha = e.medicion?.meta?.fecha || '';
@@ -1218,7 +1140,7 @@ function renderHistorialTable() {
       </td>
       <td>${notaHtml}</td>
       <td class="num">${peso?.toFixed(2) ?? '—'}</td>
-      <td class="num">${grasa?.toFixed(1) != null ? grasa.toFixed(1) + ' %' : '—'}</td>
+      <td class="num">${grasa != null ? grasa.toFixed(1) + ' %' : '—'}</td>
       <td class="num">${sum6?.toFixed(0) ?? '—'}</td>
       <td class="num">
         ${delta != null
@@ -1228,7 +1150,6 @@ function renderHistorialTable() {
     </tr>`;
   }).join('');
 
-  // Row click
   tbody.querySelectorAll('tr[data-id]').forEach(row => {
     row.addEventListener('click', () => selectHistorialRow(row.dataset.id));
   });
@@ -1263,9 +1184,9 @@ function renderHistorialDetail(entry) {
   const grasa    = res?.kerr?.componentes?.adiposa?.pct;
   const sum6     = res?.sumas?.sum6;
 
-  const hist = obtenerHistorial();
-  const idx  = hist.findIndex(e => e.medicion?.meta?.id === id);
-  const prev = hist[idx + 1] || null;
+  const hist     = obtenerHistorial();
+  const idx      = hist.findIndex(e => e.medicion?.meta?.id === id);
+  const prev     = hist[idx + 1] || null;
   const pesoPrev = prev?.medicion?.basicos?.peso_kg;
   const delta    = (peso && pesoPrev) ? peso - pesoPrev : null;
 
@@ -1274,16 +1195,11 @@ function renderHistorialDetail(entry) {
       <div class="hist-detail-date">${fmtd || '—'}</div>
       ${notas ? `<div class="hist-detail-nota">${notas}</div>` : ''}
     </div>
-
     <div class="hist-detail-metrics">
       <div class="hist-detail-metric">
         <div class="hist-detail-metric-label">PESO</div>
         <div class="hist-detail-metric-val">${peso?.toFixed(2) ?? '—'} kg</div>
-        ${delta != null
-          ? `<div class="hist-detail-metric-sub" style="color:${delta > 0 ? 'var(--red)' : 'var(--green)'}">
-              ${delta >= 0 ? '+' : ''}${delta.toFixed(2)} kg
-             </div>`
-          : ''}
+        ${delta != null ? `<div class="hist-detail-metric-sub" style="color:${delta > 0 ? 'var(--red)' : 'var(--green)'}">${delta >= 0 ? '+' : ''}${delta.toFixed(2)} kg</div>` : ''}
       </div>
       <div class="hist-detail-metric">
         <div class="hist-detail-metric-label">% GRASA</div>
@@ -1298,7 +1214,6 @@ function renderHistorialDetail(entry) {
         <div class="hist-detail-metric-val">${res?.imc?.imc?.toFixed(1) ?? '—'}</div>
       </div>
     </div>
-
     <div class="hist-detail-actions">
       <button class="hist-detail-btn primary"   data-action="ver"      data-id="${id}">Ver resultados completos</button>
       <button class="hist-detail-btn secondary" data-action="comparar" data-id="${id}">Comparar con otra medición</button>
@@ -1308,7 +1223,6 @@ function renderHistorialDetail(entry) {
     </div>
   `;
 
-  // Button events
   content.querySelectorAll('[data-action]').forEach(btn => {
     btn.addEventListener('click', () => handleHistDetailAction(btn.dataset.action, btn.dataset.id));
   });
@@ -1319,8 +1233,8 @@ async function handleHistDetailAction(action, id) {
   if (!entry) return;
 
   if (action === 'ver') {
-    STATE.medicion     = entry.medicion;
-    STATE.resultados   = entry.resultados || calcAll(entry.medicion);
+    STATE.medicion   = entry.medicion;
+    STATE.resultados = entry.resultados || calcAll(entry.medicion);
     switchTab('tab-medicion');
     showResultados();
   } else if (action === 'cargar') {
@@ -1424,26 +1338,13 @@ function showSpotlight() {
   const cutout = document.getElementById('spotlight-cutout');
   const tooltip= document.getElementById('spotlight-tooltip');
   const pad    = 6;
-  if (cutout) {
-    cutout.style.cssText = `left:${rect.left-pad}px;top:${rect.top-pad}px;width:${rect.width+pad*2}px;height:${rect.height+pad*2}px`;
-  }
+  if (cutout) cutout.style.cssText = `left:${rect.left-pad}px;top:${rect.top-pad}px;width:${rect.width+pad*2}px;height:${rect.height+pad*2}px`;
   if (tooltip) {
     const tipLeft = Math.min(rect.left, window.innerWidth - 230);
     const tipTop  = rect.top > 200 ? rect.top - 130 : rect.bottom + 16;
     tooltip.style.cssText = `left:${Math.max(10, tipLeft)}px;top:${tipTop}px`;
   }
   spotlight.classList.remove('hidden');
-}
-
-// ── TOAST ─────────────────────────────────────────────────────────────────────
-
-function showToast(msg, type = 'ok') {
-  let toast = document.getElementById('toast');
-  if (!toast) { toast = document.createElement('div'); toast.id = 'toast'; document.body.appendChild(toast); }
-  toast.textContent = msg;
-  toast.className = `toast ${type}`;
-  toast.classList.remove('hidden');
-  setTimeout(() => toast.classList.add('hidden'), 3000);
 }
 
 // ── UTILS ─────────────────────────────────────────────────────────────────────
