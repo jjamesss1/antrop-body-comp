@@ -38,6 +38,18 @@ document.addEventListener('DOMContentLoaded', () => {
   initHomePanel();
 });
 
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+
+let _toastTimer = null;
+function showToast(msg, type = 'ok') {
+  const el = document.getElementById('toast');
+  if (!el) return;
+  clearTimeout(_toastTimer);
+  el.textContent = msg;
+  el.className = type;          // 'ok' | 'error'
+  _toastTimer = setTimeout(() => { el.className = 'hidden'; }, 3500);
+}
+
 // ── PANTALLAS ─────────────────────────────────────────────────────────────────
 
 function showScreen(name) {
@@ -229,9 +241,16 @@ function getSelectedYear() { return _selectedYear; }
 document.getElementById('btn-google-login')?.addEventListener('click', async () => {
   const btn = document.getElementById('btn-google-login');
   if (btn) { btn.disabled = true; btn.style.opacity = '.6'; }
-  const { error } = await authLoginGoogle();
-  if (error) {
-    showToast('Error al conectar con Google: ' + error, 'error');
+  try {
+    const { error } = await authLoginGoogle();
+    if (error) {
+      showToast('Error al conectar con Google: ' + error, 'error');
+      if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+    }
+    // Si no hay error, Supabase redirige a Google — no hay más código que ejecutar
+  } catch (e) {
+    console.error('authLoginGoogle threw:', e);
+    showToast('No se pudo iniciar sesión: ' + (e?.message || 'error desconocido'), 'error');
     if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
   }
 });
