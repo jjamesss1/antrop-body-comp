@@ -1234,7 +1234,7 @@ async function handleHistDetailAction(action, id) {
 
   if (action === 'ver') {
     STATE.medicion   = entry.medicion;
-    STATE.resultados = entry.resultados || calcAll(entry.medicion);
+    STATE.resultados = calcAll(entry.medicion);   // siempre recalcular con fórmulas actuales
     switchTab('tab-medicion');
     showResultados();
   } else if (action === 'cargar') {
@@ -1245,7 +1245,7 @@ async function handleHistDetailAction(action, id) {
     showToast('Medición cargada ✓');
   } else if (action === 'comparar') {
     STATE.anterior      = entry.medicion;
-    STATE.resultadosAnt = entry.resultados || calcAll(entry.medicion);
+    STATE.resultadosAnt = calcAll(entry.medicion);   // siempre recalcular
     renderComparacionBanner(entry.medicion);
     showToast('Cargada como referencia ✓');
   } else if (action === 'exportar') {
