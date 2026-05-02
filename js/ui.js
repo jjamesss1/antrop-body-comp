@@ -14,6 +14,7 @@ const STATE = {
   resultadosAnt: null,
   debounceTimer: null,
   profile:       null,
+  editingId:     null,   // id de la medición siendo editada (null = nueva)
   // Evolución
   evoMetric:     'grasa',    // grasa | peso | sum6 | muscular
   evoPeriod:     '90d',
@@ -21,6 +22,43 @@ const STATE = {
   histSelectedId: null,
   histFilter:    '',
 };
+
+// ── ROUTING ───────────────────────────────────────────────────────────────────
+// Hash-based routing: #/inicio | #/medicion | #/medicion/resultados |
+//                     #/evolucion | #/historial | #/historial/{id}
+
+let _fromPopstate = false;
+
+function pushRoute(hash) {
+  if (location.hash !== hash) history.pushState(null, '', hash);
+}
+
+function parseRoute() {
+  const raw   = decodeURIComponent(location.hash || '#/');
+  const parts = raw.replace(/^#\/?/, '').split('/').filter(Boolean);
+  return { section: parts[0] || 'inicio', sub: parts[1] || null };
+}
+
+function handlePopstate() {
+  // Solo actuar si el app shell está visible (usuario logueado)
+  if (document.getElementById('app-shell')?.classList.contains('hidden')) return;
+  _fromPopstate = true;
+  const { section, sub } = parseRoute();
+  const TAB_MAP = {
+    inicio:    'tab-inicio',
+    medicion:  'tab-medicion',
+    evolucion: 'tab-evolucion',
+    historial: 'tab-historial',
+  };
+  const tabId = TAB_MAP[section] || 'tab-inicio';
+  switchTab(tabId);
+  if (section === 'medicion') {
+    if (sub === 'resultados' && STATE.resultados) showResultados();
+    else showForm();
+  }
+  if (section === 'historial' && sub) setTimeout(() => selectHistorialRow(sub, true), 50);
+  _fromPopstate = false;
+}
 
 // ── Bootstrap ─────────────────────────────────────────────────────────────────
 
@@ -35,6 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initSpotlight();
   initEvolucionPanel();
   initHomePanel();
+  window.addEventListener('popstate', handlePopstate);
 });
 
 // ── TOAST ─────────────────────────────────────────────────────────────────────
@@ -91,9 +130,22 @@ async function enterApp(user, profile) {
   // Load historial
   await cargarHistorialDeSupabase();
 
-  // Default tab: Inicio si hay historial, Medición si no
-  const hist = obtenerHistorial();
-  switchTab(hist.length > 0 ? 'tab-inicio' : 'tab-medicion');
+  // Default tab: Inicio si hay historial, Medición si no.
+  // Si ya hay un hash en la URL (bookmark / back button), respetarlo.
+  const hist      = obtenerHistorial();
+  const initRoute = parseRoute();
+  const hasHash   = location.hash && location.hash.length > 1;
+  if (hasHash) {
+    _fromPopstate = true;
+    const TAB_MAP = { inicio: 'tab-inicio', medicion: 'tab-medicion', evolucion: 'tab-evolucion', historial: 'tab-historial' };
+    const tabId = TAB_MAP[initRoute.section] || (hist.length > 0 ? 'tab-inicio' : 'tab-medicion');
+    switchTab(tabId);
+    if (initRoute.section === 'medicion' && initRoute.sub === 'resultados' && STATE.resultados) showResultados();
+    if (initRoute.section === 'historial' && initRoute.sub) setTimeout(() => selectHistorialRow(initRoute.sub, true), 200);
+    _fromPopstate = false;
+  } else {
+    switchTab(hist.length > 0 ? 'tab-inicio' : 'tab-medicion');
+  }
 
   renderHome();
   recalcular();
@@ -144,6 +196,17 @@ function switchTab(tabId) {
   document.querySelectorAll('[data-panel]').forEach(panel => {
     panel.classList.toggle('hidden', panel.dataset.panel !== tabId);
   });
+
+  // Actualizar URL (no push si venimos de popstate)
+  if (!_fromPopstate) {
+    const routeMap = {
+      'tab-inicio':    '#/inicio',
+      'tab-medicion':  '#/medicion',
+      'tab-evolucion': '#/evolucion',
+      'tab-historial': '#/historial',
+    };
+    pushRoute(routeMap[tabId] || '#/inicio');
+  }
 
   // On-enter hooks
   if (tabId === 'tab-inicio')    renderHome();
@@ -569,17 +632,21 @@ function initForm() {
 function showForm() {
   document.getElementById('medicion-view-form')?.classList.remove('hidden');
   document.getElementById('medicion-view-resultados')?.classList.add('hidden');
+  if (!_fromPopstate) pushRoute('#/medicion');
+  updateFormModeUI();
 }
 
 function showResultados() {
   if (!STATE.resultados) { showToast('No hay resultados para mostrar', 'error'); return; }
   document.getElementById('medicion-view-form')?.classList.add('hidden');
   document.getElementById('medicion-view-resultados')?.classList.remove('hidden');
+  if (!_fromPopstate) pushRoute('#/medicion/resultados');
   renderResultadosPanel(STATE.resultados, STATE.medicion, STATE.resultadosAnt, STATE.anterior);
 }
 
 function resetForm() {
-  STATE.medicion = emptyMedicion();
+  STATE.medicion  = emptyMedicion();
+  STATE.editingId = null;
   const form = document.getElementById('form-medicion');
   form?.reset();
   const fechaInput = document.querySelector('[data-field="meta.fecha"]');
@@ -595,9 +662,12 @@ function resetForm() {
 async function guardarMedicion() {
   if (!STATE.medicion) return;
   if (!authCurrentUser()) { showToast('Iniciá sesión para guardar', 'error'); return; }
+  const isEditing = !!STATE.editingId;
   const ok = await guardarEnHistorial(STATE.medicion, STATE.resultados);
   if (ok) {
-    showToast('Guardado ✓');
+    showToast(isEditing ? 'Medición actualizada ✓' : 'Guardado ✓');
+    STATE.editingId = null;
+    updateFormModeUI();
     // Show "ver resultados" button
     const btn = document.getElementById('btn-ver-resultados');
     if (btn) btn.style.display = '';
@@ -608,6 +678,38 @@ async function guardarMedicion() {
     renderHistorialTable();
   } else {
     showToast('Error al guardar', 'error');
+  }
+}
+
+// ── MODO EDICIÓN UI ───────────────────────────────────────────────────────────
+
+function updateFormModeUI() {
+  const isEditing = !!STATE.editingId;
+
+  // Título del formulario
+  const titleEl = document.querySelector('#medicion-view-form .panel-title');
+  if (titleEl) titleEl.textContent = isEditing ? 'Editar medición' : 'Nueva medición';
+
+  // Texto del botón Guardar
+  const guardarBtn       = document.getElementById('btn-guardar');
+  const guardarMobileBtn = document.getElementById('btn-guardar-mobile');
+  if (guardarBtn)       guardarBtn.textContent       = isEditing ? 'Actualizar' : 'Guardar';
+  if (guardarMobileBtn) guardarMobileBtn.textContent = isEditing ? 'Actualizar' : 'Guardar';
+
+  // Badge "EDITANDO · fecha"
+  let badge = document.getElementById('edit-mode-badge');
+  if (isEditing) {
+    if (!badge) {
+      badge = document.createElement('span');
+      badge.id        = 'edit-mode-badge';
+      badge.className = 'edit-mode-badge';
+      const topbarLeft = document.querySelector('#medicion-view-form .panel-topbar-left');
+      topbarLeft?.appendChild(badge);
+    }
+    badge.textContent = `EDITANDO · ${STATE.medicion?.meta?.fecha || ''}`;
+    badge.style.display = '';
+  } else if (badge) {
+    badge.style.display = 'none';
   }
 }
 
@@ -1155,13 +1257,14 @@ function renderHistorialTable() {
   });
 }
 
-function selectHistorialRow(id) {
+function selectHistorialRow(id, silent = false) {
   STATE.histSelectedId = id;
   document.querySelectorAll('#historial-tbody tr').forEach(r => {
     r.classList.toggle('selected', r.dataset.id === id);
   });
   const entry = obtenerHistorial().find(e => e.medicion?.meta?.id === id);
   if (entry) renderHistorialDetail(entry);
+  if (!silent && !_fromPopstate) pushRoute(`#/historial/${id}`);
 }
 
 function renderHistorialDetail(entry) {
@@ -1216,8 +1319,8 @@ function renderHistorialDetail(entry) {
     </div>
     <div class="hist-detail-actions">
       <button class="hist-detail-btn primary"   data-action="ver"      data-id="${id}">Ver resultados completos</button>
+      <button class="hist-detail-btn edit"      data-action="editar"   data-id="${id}">✎ Editar medición</button>
       <button class="hist-detail-btn secondary" data-action="comparar" data-id="${id}">Comparar con otra medición</button>
-      <button class="hist-detail-btn secondary" data-action="cargar"   data-id="${id}">Cargar en formulario</button>
       <button class="hist-detail-btn secondary" data-action="exportar" data-id="${id}">↓ Exportar JSON</button>
       <button class="hist-detail-btn danger"    data-action="eliminar" data-id="${id}">Eliminar</button>
     </div>
@@ -1237,12 +1340,17 @@ async function handleHistDetailAction(action, id) {
     STATE.resultados = calcAll(entry.medicion);   // siempre recalcular con fórmulas actuales
     switchTab('tab-medicion');
     showResultados();
-  } else if (action === 'cargar') {
-    STATE.medicion = entry.medicion;
-    poblarFormulario(document.getElementById('form-medicion'), entry.medicion);
+  } else if (action === 'editar') {
+    // Cargar con el mismo id → guardarEnHistorial hará upsert (UPDATE)
+    STATE.medicion  = JSON.parse(JSON.stringify(entry.medicion));
+    STATE.editingId = entry.medicion.meta.id;
+    poblarFormulario(document.getElementById('form-medicion'), STATE.medicion);
     recalcular(); updateProgress();
+    const verBtn = document.getElementById('btn-ver-resultados');
+    if (verBtn) verBtn.style.display = 'none';
     switchTab('tab-medicion');
-    showToast('Medición cargada ✓');
+    updateFormModeUI();
+    showToast('Editando medición del ' + (entry.medicion.meta.fecha || ''));
   } else if (action === 'comparar') {
     STATE.anterior      = entry.medicion;
     STATE.resultadosAnt = calcAll(entry.medicion);   // siempre recalcular
