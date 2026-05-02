@@ -160,114 +160,78 @@
 
       <!-- Dashboard (when has measurements) -->
       <div id="home-dashboard" class="home-body hidden">
-        <!-- Left column: last measurement + trend + recent -->
-        <div class="home-main-col">
-          <!-- Last measurement card -->
-          <div class="home-last-card">
-            <div class="home-last-header">
-              <span class="home-last-label">ÚLTIMA MEDICIÓN</span>
-              <span class="home-last-date" id="home-ultima-fecha">—</span>
+
+        <!-- Héroe: última medición (clickeable → ver resultados) -->
+        <div class="home-hero-card" id="home-hero-card">
+          <div class="home-last-header">
+            <span class="home-last-label">ÚLTIMA MEDICIÓN</span>
+            <span class="home-last-date" id="home-ultima-fecha">—</span>
+          </div>
+          <div class="home-last-weight-row">
+            <span class="home-last-weight" id="home-ultima-peso">—</span>
+            <span class="home-last-unit">kg</span>
+            <span class="home-last-delta" id="home-ultima-delta"></span>
+          </div>
+          <div class="home-last-metrics">
+            <div class="home-metric">
+              <div class="home-metric-label">% grasa</div>
+              <div class="home-metric-value" id="home-grasa">—</div>
             </div>
-            <div class="home-last-weight-row">
-              <span class="home-last-weight" id="home-ultima-peso">—</span>
-              <span class="home-last-unit">kg</span>
-              <span class="home-last-delta" id="home-ultima-delta"></span>
+            <div class="home-metric">
+              <div class="home-metric-label">IMC</div>
+              <div class="home-metric-value" id="home-imc">—</div>
             </div>
-            <div class="home-last-metrics">
-              <div class="home-metric">
-                <div class="home-metric-label">% grasa (Kerr)</div>
-                <div class="home-metric-value" id="home-grasa">—</div>
-              </div>
-              <div class="home-metric">
-                <div class="home-metric-label">Σ 6 pliegues</div>
-                <div class="home-metric-value" id="home-sum6">— <span class="home-metric-unit">mm</span></div>
-              </div>
-              <div class="home-metric">
-                <div class="home-metric-label">IMC</div>
-                <div class="home-metric-value" id="home-imc">—</div>
-              </div>
-              <div class="home-metric">
-                <div class="home-metric-label">ICC</div>
-                <div class="home-metric-value" id="home-icc">—</div>
-              </div>
+            <div class="home-metric">
+              <div class="home-metric-label">ICC</div>
+              <div class="home-metric-value" id="home-icc">—</div>
+            </div>
+            <div class="home-metric">
+              <div class="home-metric-label">Σ 6 pliegues</div>
+              <div class="home-metric-value" id="home-sum6">— <span class="home-metric-unit">mm</span></div>
             </div>
           </div>
-
-          <!-- Trend chart -->
-          <div class="home-trend-card">
-            <div class="home-trend-header">
-              <div>
-                <div class="home-trend-label">TENDENCIA</div>
-                <div class="home-trend-sub" id="home-trend-subtitle">% grasa corporal · 90 días</div>
-              </div>
-              <div class="period-tabs" id="home-period-tabs">
-                <button class="period-tab" data-period="7d">7 d</button>
-                <button class="period-tab" data-period="30d">30 d</button>
-                <button class="period-tab active" data-period="90d">90 d</button>
-                <button class="period-tab" data-period="1y">1 año</button>
-                <button class="period-tab" data-period="all">Todo</button>
-              </div>
-            </div>
-            <div class="chart-wrap" style="height:200px"><canvas id="home-trend-chart"></canvas></div>
-          </div>
-
-          <!-- Recent measurements -->
-          <div class="home-section-card">
-            <div class="home-section-title">MEDICIONES RECIENTES</div>
-            <table class="home-recent-table">
-              <thead><tr>
-                <th>FECHA</th>
-                <th class="num">PESO</th>
-                <th class="num">% GRASA</th>
-                <th class="num">Σ PLIEGUES</th>
-                <th class="num">Δ</th>
-              </tr></thead>
-              <tbody id="home-recent-list"></tbody>
-            </table>
+          <div class="home-hero-divider"></div>
+          <div class="home-hero-cta">
+            <span class="home-hero-cta-label">Ver resultados completos</span>
+            <span class="home-hero-cta-arrow">→</span>
           </div>
         </div>
 
-        <!-- Right column: quick actions + next steps + highlights -->
-        <div class="home-side-col">
-          <!-- Quick actions -->
-          <div class="home-quick-card">
-            <button class="home-quick-primary" id="home-btn-nueva-2">
-              <div class="home-quick-icon-wrap accent">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-                </svg>
-              </div>
-              <div>
-                <div class="home-quick-label">Nueva medición</div>
-                <div class="home-quick-sub">Registrar valores</div>
-              </div>
+        <!-- 3 acciones primarias -->
+        <div class="home-actions">
+          <button class="home-action-primary" id="home-btn-ver-resultados">
+            <div>
+              <div class="home-action-label">Ver resultados</div>
+              <div class="home-action-sub" id="home-action-fecha-sub">Última medición</div>
+            </div>
+            <span>→</span>
+          </button>
+          <div class="home-action-row">
+            <button class="home-action-secondary" id="home-btn-nueva-3">
+              <div class="home-action-label">Nueva medición</div>
+              <div class="home-action-sub">Registrar valores</div>
             </button>
-            <button class="home-quick-secondary" id="btn-repetir-ultima">
-              <div class="home-quick-icon-wrap muted">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                  <polyline points="14 2 14 8 20 8"/>
-                </svg>
-              </div>
-              <div>
-                <div class="home-quick-label">Repetir última</div>
-                <div class="home-quick-sub">Cargar plantilla</div>
-              </div>
+            <button class="home-action-secondary" id="home-btn-evolucion">
+              <div class="home-action-label">Ver evolución</div>
+              <div class="home-action-sub">Tendencia temporal</div>
             </button>
-          </div>
-
-          <!-- Next steps -->
-          <div class="home-section-card">
-            <div class="home-section-title">PRÓXIMOS PASOS</div>
-            <div id="home-next-steps" class="home-next-steps"></div>
-          </div>
-
-          <!-- Cambios destacados -->
-          <div class="home-section-card">
-            <div class="home-section-title">CAMBIOS DESTACADOS (VS HACE 90 D)</div>
-            <div id="home-destacados" class="home-destacados-list"></div>
           </div>
         </div>
+
+        <!-- Mediciones recientes (secundario, 2 filas máx) -->
+        <div class="home-recent-mini">
+          <div class="home-section-title">MEDICIONES RECIENTES</div>
+          <table class="home-recent-table">
+            <thead><tr>
+              <th>FECHA</th>
+              <th class="num">PESO</th>
+              <th class="num">% GRASA</th>
+              <th class="num">Δ</th>
+            </tr></thead>
+            <tbody id="home-recent-list"></tbody>
+          </table>
+        </div>
+
       </div>
     </div><!-- /panel-inicio -->
 
@@ -552,77 +516,82 @@
             </div>
           </div>
 
-          <!-- Row 1: Composición + Somatotipo -->
-          <div class="res-grid-2">
-            <div class="res-card">
-              <div class="res-card-title">Composición corporal · 4 compartimentos</div>
-              <div class="res-comp-bar" id="res-comp-bar"></div>
-              <div class="res-comp-legend" id="res-comp-legend"></div>
-            </div>
-            <div class="res-card">
-              <div class="res-card-title">Somatotipo Heath-Carter</div>
-              <canvas id="res-somatocarta" width="280" height="180" style="width:100%;height:auto;display:block"></canvas>
-              <div class="res-somato-values">
-                <div class="res-somato-item">
-                  <div class="res-somato-label">Endomorfia</div>
-                  <div class="res-somato-val" id="res-endo" style="color:#f97316">—</div>
-                </div>
-                <div class="res-somato-item">
-                  <div class="res-somato-label">Mesomorfia</div>
-                  <div class="res-somato-val" id="res-meso" style="color:#4f46e5">—</div>
-                </div>
-                <div class="res-somato-item">
-                  <div class="res-somato-label">Ectomorfia</div>
-                  <div class="res-somato-val" id="res-ecto" style="color:#10b981">—</div>
-                </div>
-              </div>
-              <div class="res-somato-clasif" id="res-somato-clasif"></div>
-            </div>
-          </div>
+          <!-- Desktop 2-column layout -->
+          <div class="res-desktop-cols">
 
-          <!-- Row 2: Índices + Pliegues -->
-          <div class="res-grid-2">
-            <div class="res-card">
-              <div class="res-card-title">Índices antropométricos</div>
-              <table class="res-indices-table">
-                <tbody id="res-indices-tbody"></tbody>
-              </table>
+            <!-- Columna izquierda: Composición + Kerr/Sumatorias -->
+            <div class="res-desktop-left">
+              <div class="res-card">
+                <div class="res-card-title">Composición corporal · 4 compartimentos</div>
+                <div class="res-comp-bar" id="res-comp-bar"></div>
+                <div class="res-comp-legend" id="res-comp-legend"></div>
+              </div>
+              <div class="res-grid-2">
+                <div class="res-card">
+                  <div class="res-card-title">Fraccionamiento Kerr · 5 componentes</div>
+                  <table class="kerr-table">
+                    <thead><tr><th>Componente</th><th class="num">kg</th><th class="num">%</th><th class="num">Δ</th></tr></thead>
+                    <tbody>
+                      <tr><td><span class="kerr-dot" style="background:#f59e0b"></span>Piel</td><td class="num" id="res-kerr-piel-kg">—</td><td class="num" id="res-kerr-piel-pct">—</td><td class="num"><span id="res-kerr-piel-diff" class="diff"></span></td></tr>
+                      <tr><td><span class="kerr-dot" style="background:#f97316"></span>Adiposa</td><td class="num" id="res-kerr-adiposa-kg">—</td><td class="num" id="res-kerr-adiposa-pct">—</td><td class="num"><span id="res-kerr-adiposa-diff" class="diff"></span></td></tr>
+                      <tr><td><span class="kerr-dot" style="background:#4f46e5"></span>Muscular</td><td class="num" id="res-kerr-muscular-kg">—</td><td class="num" id="res-kerr-muscular-pct">—</td><td class="num"><span id="res-kerr-muscular-diff" class="diff"></span></td></tr>
+                      <tr><td><span class="kerr-dot" style="background:#8b5cf6"></span>Ósea</td><td class="num" id="res-kerr-osea-kg">—</td><td class="num" id="res-kerr-osea-pct">—</td><td class="num"><span id="res-kerr-osea-diff" class="diff"></span></td></tr>
+                      <tr><td><span class="kerr-dot" style="background:#10b981"></span>Residual</td><td class="num" id="res-kerr-residual-kg">—</td><td class="num" id="res-kerr-residual-pct">—</td><td class="num"><span id="res-kerr-residual-diff" class="diff"></span></td></tr>
+                      <tr style="font-size:.75rem;color:var(--text-3)"><td colspan="2">Diferencia cierre</td><td class="num" id="res-kerr-cierre">—</td><td>%</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="res-card">
+                  <div class="res-card-title">Sumatorias e índices derivados</div>
+                  <div class="res-sumas">
+                    <div class="sumas-row"><span class="sumas-label">Σ3 (sub+supra+abd)</span><span class="sumas-val" id="res-sum3">—</span><span class="sumas-pct">mm · P<span id="res-sum3-pct">—</span></span></div>
+                    <div class="sumas-row"><span class="sumas-label">Σ6 (ISAK)</span><span class="sumas-val" id="res-sum6b">—</span><span class="sumas-pct">mm</span></div>
+                    <div class="sumas-row"><span class="sumas-label">Σ8</span><span class="sumas-val" id="res-sum8">—</span><span class="sumas-pct">mm</span></div>
+                  </div>
+                  <div class="res-sumas" style="margin-top:16px">
+                    <div class="sumas-row"><span class="sumas-label">Músculo/Óseo</span><span class="sumas-val" id="res-idx-musc-oseo">—</span></div>
+                    <div class="sumas-row"><span class="sumas-label">Adiposo/Muscular</span><span class="sumas-val" id="res-idx-adip-musc">—</span></div>
+                    <div class="sumas-row"><span class="sumas-label">MB (Harris-Benedict)</span><span class="sumas-val" id="res-hb">—</span><span class="sumas-pct">kcal</span></div>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="res-card">
-              <div class="res-card-title">Pliegues cutáneos <span id="res-pliegues-vs" class="res-vs-label"></span></div>
-              <div id="res-pliegues-list" class="res-pliegues-list"></div>
-            </div>
-          </div>
 
-          <!-- Row 3: Kerr tabla + Sumatorias -->
-          <div class="res-grid-2">
-            <div class="res-card">
-              <div class="res-card-title">Fraccionamiento Kerr · 5 componentes</div>
-              <table class="kerr-table">
-                <thead><tr><th>Componente</th><th class="num">kg</th><th class="num">%</th><th class="num">Δ</th></tr></thead>
-                <tbody>
-                  <tr><td><span class="kerr-dot" style="background:#f59e0b"></span>Piel</td><td class="num" id="res-kerr-piel-kg">—</td><td class="num" id="res-kerr-piel-pct">—</td><td class="num"><span id="res-kerr-piel-diff" class="diff"></span></td></tr>
-                  <tr><td><span class="kerr-dot" style="background:#f97316"></span>Adiposa</td><td class="num" id="res-kerr-adiposa-kg">—</td><td class="num" id="res-kerr-adiposa-pct">—</td><td class="num"><span id="res-kerr-adiposa-diff" class="diff"></span></td></tr>
-                  <tr><td><span class="kerr-dot" style="background:#4f46e5"></span>Muscular</td><td class="num" id="res-kerr-muscular-kg">—</td><td class="num" id="res-kerr-muscular-pct">—</td><td class="num"><span id="res-kerr-muscular-diff" class="diff"></span></td></tr>
-                  <tr><td><span class="kerr-dot" style="background:#8b5cf6"></span>Ósea</td><td class="num" id="res-kerr-osea-kg">—</td><td class="num" id="res-kerr-osea-pct">—</td><td class="num"><span id="res-kerr-osea-diff" class="diff"></span></td></tr>
-                  <tr><td><span class="kerr-dot" style="background:#10b981"></span>Residual</td><td class="num" id="res-kerr-residual-kg">—</td><td class="num" id="res-kerr-residual-pct">—</td><td class="num"><span id="res-kerr-residual-diff" class="diff"></span></td></tr>
-                  <tr style="font-size:.75rem;color:var(--text-3)"><td colspan="2">Diferencia cierre</td><td class="num" id="res-kerr-cierre">—</td><td>%</td></tr>
-                </tbody>
-              </table>
-            </div>
-            <div class="res-card">
-              <div class="res-card-title">Sumatorias e índices derivados</div>
-              <div class="res-sumas">
-                <div class="sumas-row"><span class="sumas-label">Σ3 (sub+supra+abd)</span><span class="sumas-val" id="res-sum3">—</span><span class="sumas-pct">mm · P<span id="res-sum3-pct">—</span></span></div>
-                <div class="sumas-row"><span class="sumas-label">Σ6 (ISAK)</span><span class="sumas-val" id="res-sum6b">—</span><span class="sumas-pct">mm</span></div>
-                <div class="sumas-row"><span class="sumas-label">Σ8</span><span class="sumas-val" id="res-sum8">—</span><span class="sumas-pct">mm</span></div>
+            <!-- Columna derecha: Somatotipo + Índices/Pliegues -->
+            <div class="res-desktop-right">
+              <div class="res-card">
+                <div class="res-card-title">Somatotipo Heath-Carter</div>
+                <canvas id="res-somatocarta" width="280" height="180" style="width:100%;max-height:180px;height:auto;display:block"></canvas>
+                <div class="res-somato-values">
+                  <div class="res-somato-item">
+                    <div class="res-somato-label">Endomorfia</div>
+                    <div class="res-somato-val" id="res-endo" style="color:#f97316">—</div>
+                  </div>
+                  <div class="res-somato-item">
+                    <div class="res-somato-label">Mesomorfia</div>
+                    <div class="res-somato-val" id="res-meso" style="color:#4f46e5">—</div>
+                  </div>
+                  <div class="res-somato-item">
+                    <div class="res-somato-label">Ectomorfia</div>
+                    <div class="res-somato-val" id="res-ecto" style="color:#10b981">—</div>
+                  </div>
+                </div>
+                <div class="res-somato-clasif" id="res-somato-clasif"></div>
               </div>
-              <div class="res-sumas" style="margin-top:16px">
-                <div class="sumas-row"><span class="sumas-label">Músculo/Óseo</span><span class="sumas-val" id="res-idx-musc-oseo">—</span></div>
-                <div class="sumas-row"><span class="sumas-label">Adiposo/Muscular</span><span class="sumas-val" id="res-idx-adip-musc">—</span></div>
-                <div class="sumas-row"><span class="sumas-label">MB (Harris-Benedict)</span><span class="sumas-val" id="res-hb">—</span><span class="sumas-pct">kcal</span></div>
+              <div class="res-grid-2">
+                <div class="res-card">
+                  <div class="res-card-title">Índices antropométricos</div>
+                  <table class="res-indices-table">
+                    <tbody id="res-indices-tbody"></tbody>
+                  </table>
+                </div>
+                <div class="res-card">
+                  <div class="res-card-title">Pliegues cutáneos <span id="res-pliegues-vs" class="res-vs-label"></span></div>
+                  <div id="res-pliegues-list" class="res-pliegues-list"></div>
+                </div>
               </div>
             </div>
+
           </div>
 
         </div><!-- /resultados-scroll -->

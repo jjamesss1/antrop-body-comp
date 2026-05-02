@@ -326,30 +326,29 @@ document.getElementById('btn-logout')?.addEventListener('click', async () => {
 // ── HOME PANEL ────────────────────────────────────────────────────────────────
 
 function initHomePanel() {
-  document.getElementById('home-btn-nueva')?.addEventListener('click',   () => switchTab('tab-medicion'));
-  document.getElementById('home-btn-nueva-2')?.addEventListener('click', () => switchTab('tab-medicion'));
-  document.getElementById('home-btn-primera')?.addEventListener('click', () => switchTab('tab-medicion'));
-  document.getElementById('btn-repetir-ultima')?.addEventListener('click', () => {
-    const hist = obtenerHistorial();
-    if (hist.length === 0) { switchTab('tab-medicion'); return; }
-    const last = hist[0];
-    STATE.medicion = JSON.parse(JSON.stringify(last.medicion));
-    STATE.medicion.meta.id = crypto.randomUUID?.() || Date.now().toString(36);
-    STATE.medicion.meta.fecha = new Date().toISOString().slice(0, 10);
-    poblarFormulario(document.getElementById('form-medicion'), STATE.medicion);
-    recalcular(); updateProgress();
-    switchTab('tab-medicion');
-    showToast('Plantilla cargada ✓');
-  });
+  document.getElementById('home-btn-nueva')?.addEventListener('click',          () => switchTab('tab-medicion'));
+  document.getElementById('home-btn-primera')?.addEventListener('click',        () => switchTab('tab-medicion'));
+  document.getElementById('home-hero-card')?.addEventListener('click',          () => verResultadosUltimo());
+  document.getElementById('home-btn-ver-resultados')?.addEventListener('click', () => verResultadosUltimo());
+  document.getElementById('home-btn-nueva-3')?.addEventListener('click',        () => switchTab('tab-medicion'));
+  document.getElementById('home-btn-evolucion')?.addEventListener('click',      () => switchTab('tab-evolucion'));
+}
 
-  // Home period tabs
-  document.getElementById('home-period-tabs')?.addEventListener('click', (e) => {
-    const btn = e.target.closest('.period-tab');
-    if (!btn) return;
-    document.querySelectorAll('#home-period-tabs .period-tab').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    renderHomeTrendChart(btn.dataset.period);
-  });
+function verResultadosUltimo() {
+  const hist = obtenerHistorial();
+  if (hist.length === 0) { switchTab('tab-medicion'); return; }
+  const last = hist[0];
+  const prev = hist[1] || null;
+  STATE.medicion      = JSON.parse(JSON.stringify(last.medicion));
+  STATE.anterior      = prev ? JSON.parse(JSON.stringify(prev.medicion)) : null;
+  STATE.resultadosAnt = prev ? prev.resultados : null;
+  STATE.editingId     = last.medicion.meta.id;
+  poblarFormulario(document.getElementById('form-medicion'), STATE.medicion);
+  recalcular();
+  updateProgress();
+  updateFormModeUI();
+  switchTab('tab-medicion');
+  showResultados();
 }
 
 function renderHome() {
@@ -421,17 +420,15 @@ function renderHome() {
   document.getElementById('home-imc').textContent   = imc   != null ? imc.toFixed(1)  : '—';
   document.getElementById('home-icc').textContent   = icc   != null ? icc.toFixed(3)  : '—';
 
-  // Trend chart
-  renderHomeTrendChart('90d');
+  // Update action fecha sub-label
+  const sub = document.getElementById('home-action-fecha-sub');
+  if (sub && fechaStr) {
+    const d2 = new Date(fechaStr + 'T00:00:00');
+    sub.textContent = d2.toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
 
-  // Recent list (last 5)
-  renderHomeRecentList(hist.slice(0, 5));
-
-  // Next steps
-  renderHomeNextSteps(hist);
-
-  // Destacados (vs 90 days ago)
-  renderHomeDestacados(hist);
+  // Recent list (2 rows max)
+  renderHomeRecentList(hist.slice(0, 2));
 }
 
 function renderHomeRecentList(entries) {
@@ -444,25 +441,16 @@ function renderHomeRecentList(entries) {
     const prev = entries[i + 1];
     const peso = med?.basicos?.peso_kg;
     const gras = res?.kerr?.componentes?.adiposa?.pct;
-    const sum6 = res?.sumas?.sum6;
     const pesoPrev = prev?.medicion?.basicos?.peso_kg;
     const delta = (peso && pesoPrev) ? peso - pesoPrev : null;
     const fechaStr = med?.meta?.fecha || '—';
     const lDate = new Date(fechaStr + 'T00:00:00');
-    const hoy   = new Date();
-    const dias  = Math.round((hoy - lDate) / (1000 * 60 * 60 * 24));
-
     const fechaFmt = lDate.toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' });
-    const esHoy = dias === 0;
 
     return `<tr data-id="${med?.meta?.id}">
-      <td>
-        <span class="hist-fecha">${fechaFmt}</span>
-        ${esHoy ? '<span class="home-recent-tag">HOY</span>' : `<span class="hist-dias">${dias} d</span>`}
-      </td>
-      <td class="num">${peso != null ? peso.toFixed(2) : '—'} kg</td>
+      <td><span class="hist-fecha">${fechaFmt}</span></td>
+      <td class="num">${peso != null ? peso.toFixed(2) + ' kg' : '—'}</td>
       <td class="num">${gras != null ? gras.toFixed(1) + ' %' : '—'}</td>
-      <td class="num">${sum6 != null ? sum6.toFixed(0) + ' mm' : '—'}</td>
       <td class="num">
         ${delta != null
           ? `<span class="hist-delta ${delta > 0 ? 'pos' : delta < 0 ? 'neg' : ''}">${delta >= 0 ? '+' : ''}${delta.toFixed(2)}</span>`

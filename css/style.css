@@ -975,16 +975,62 @@ body {
 /* Dashboard layout */
 .home-body {
   flex:1; overflow-y:auto; padding:20px 24px;
-  display:grid;
-  grid-template-columns: 1fr 320px;
-  gap:16px;
-  align-items:start;
+  display:flex; flex-direction:column; gap:14px;
   scrollbar-width:thin; scrollbar-color:var(--border) transparent;
 }
-.home-main-col { display:flex; flex-direction:column; gap:14px; }
-.home-side-col  { display:flex; flex-direction:column; gap:14px; position:sticky; top:0; }
 
-/* Last measurement card */
+/* Hero card (última medición — clickeable) */
+.home-hero-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-xl); padding:20px;
+  box-shadow:var(--shadow);
+  cursor:pointer;
+  transition:border-color .15s, box-shadow .15s;
+}
+.home-hero-card:hover {
+  border-color:var(--accent-border);
+  box-shadow:var(--shadow-md);
+}
+.home-hero-divider { border:none; border-top:1px solid var(--border); margin:16px 0 14px; }
+.home-hero-cta { display:flex; align-items:center; justify-content:space-between; }
+.home-hero-cta-label { font-size:.875rem; font-weight:600; color:var(--accent); }
+.home-hero-cta-arrow { font-size:1rem; color:var(--accent); }
+
+/* Action blocks */
+.home-actions { display:flex; flex-direction:column; gap:8px; }
+.home-action-primary {
+  display:flex; align-items:center; justify-content:space-between;
+  background:var(--accent); color:#fff;
+  border:none; border-radius:var(--radius-xl); padding:18px 22px;
+  cursor:pointer; width:100%; font-family:inherit; text-align:left;
+  transition:background .15s;
+}
+.home-action-primary:hover { background:var(--accent-2); }
+.home-action-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.home-action-secondary {
+  display:block; background:var(--surface);
+  border:1.5px solid var(--border); border-radius:var(--radius-xl);
+  padding:16px 18px; cursor:pointer; width:100%;
+  font-family:inherit; text-align:left;
+  transition:border-color .15s, background .15s;
+}
+.home-action-secondary:hover { border-color:var(--border-2); background:var(--surface2); }
+.home-action-label { font-size:.95rem; font-weight:600; }
+.home-action-sub   { font-size:.75rem; margin-top:3px; }
+.home-action-primary .home-action-label { color:#fff; }
+.home-action-primary .home-action-sub   { color:rgba(255,255,255,.75); }
+.home-action-primary > span             { color:#fff; font-size:1.1rem; }
+.home-action-secondary .home-action-label { color:var(--text); }
+.home-action-secondary .home-action-sub   { color:var(--text-2); }
+
+/* Mediciones recientes (minimal) */
+.home-recent-mini {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-xl); padding:16px 20px;
+  box-shadow:var(--shadow);
+}
+
+/* (legacy alias — kept for fallback) */
 .home-last-card {
   background:var(--surface); border:1px solid var(--border);
   border-radius:var(--radius-xl); padding:20px;
@@ -1268,6 +1314,14 @@ body {
 .res-vs-label { font-size:.68rem; color:var(--text-3); font-weight:400; text-transform:none; letter-spacing:0; }
 .res-sumas { display:flex; flex-direction:column; gap:6px; }
 
+/* Desktop 2-column layout for resultados */
+.res-desktop-cols {
+  display:grid; grid-template-columns:1fr 1fr;
+  gap:14px; align-items:start;
+}
+.res-desktop-left,
+.res-desktop-right { display:flex; flex-direction:column; gap:14px; }
+
 /* ══════════════════════════════════════════════════════════════════════
    PANEL: EVOLUCIÓN
 ══════════════════════════════════════════════════════════════════════ */
@@ -1463,10 +1517,9 @@ body {
 ══════════════════════════════════════════════════════════════════════ */
 @media (max-width: 1024px) {
   .res-top-cards     { grid-template-columns:repeat(2,1fr); }
+  .res-desktop-cols  { grid-template-columns:1fr; }
   .evolucion-metrics { grid-template-columns:repeat(2,1fr); }
   .evolucion-stats   { grid-template-columns:repeat(2,1fr); }
-  .home-body         { grid-template-columns:1fr; }
-  .home-side-col     { position:static; }
   .home-last-metrics { grid-template-columns:repeat(2,1fr); }
   .historial-detail  { width:260px; }
 }
@@ -1480,4 +1533,15 @@ body {
   .evolucion-body    { padding:14px 16px; }
   .home-body         { padding:12px 16px; }
   .historial-body    { flex-direction:column; }
-  .hi
+  .historial-detail  { width:100%; border-left:none; border-top:1px solid var(--border); max-height:320px; }
+  .historial-table-wrap { max-height:calc(100vh - 340px); }
+  .search-wrap input { width:120px; }
+  .period-tabs-sm    { display:none; }
+}
+
+@media (max-width: 480px) {
+  .res-top-cards     { grid-template-columns:1fr 1fr; }
+  .evolucion-metrics { grid-template-columns:1fr 1fr; }
+  .home-last-weight  { font-size:2.2rem; }
+  .home-last-metrics { grid-template-columns:1fr 1fr; }
+}
