@@ -978,6 +978,10 @@ body {
   display:flex; flex-direction:column; gap:14px;
   scrollbar-width:thin; scrollbar-color:var(--border) transparent;
 }
+#home-dashboard {
+  max-width:960px;
+  width:100%;
+}
 
 /* Hero card (última medición — clickeable) */
 .home-hero-card {
