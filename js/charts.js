@@ -102,7 +102,57 @@ function renderKerrPie(canvasId, kerr) {
   });
 }
 
-// ── Somatocarta (Chart.js scatter) ────────────────────────────────────────────
+// ── Somatocarta (Chart.js scatter + triángulo Heath-Carter) ─────────────────
+
+const _somatoTrianglePlugin = {
+  id: 'somatoTriangle',
+  beforeDatasetsDraw(chart) {
+    const { ctx, scales: { x: xs, y: ys } } = chart;
+    if (!xs || !ys) return;
+    const px = (dx, dy) => ({ px: xs.getPixelForValue(dx), py: ys.getPixelForValue(dy) });
+
+    const meso = px( 0,   9);
+    const endo = px(-6,  -3.5);
+    const ecto = px( 6,  -3.5);
+    const ctr  = px( 0,   0);
+
+    ctx.save();
+
+    // Triángulo exterior
+    ctx.beginPath();
+    ctx.moveTo(meso.px, meso.py);
+    ctx.lineTo(endo.px, endo.py);
+    ctx.lineTo(ecto.px, ecto.py);
+    ctx.closePath();
+    ctx.strokeStyle = '#d1d5db';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Líneas divisorias centro→vértice
+    ctx.setLineDash([4, 4]);
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = '#e5e7eb';
+    [[meso, ctr], [endo, ctr], [ecto, ctr]].forEach(([a, b]) => {
+      ctx.beginPath();
+      ctx.moveTo(a.px, a.py);
+      ctx.lineTo(b.px, b.py);
+      ctx.stroke();
+    });
+    ctx.setLineDash([]);
+
+    // Etiquetas de vértice
+    ctx.font = 'bold 9px Inter, system-ui, sans-serif';
+    ctx.fillStyle = '#9ca3af';
+    ctx.textAlign = 'center';
+    ctx.fillText('MESOMORFO', meso.px, meso.py - 8);
+    ctx.textAlign = 'right';
+    ctx.fillText('ENDOMORFO', endo.px - 4, endo.py + 14);
+    ctx.textAlign = 'left';
+    ctx.fillText('ECTOMORFO', ecto.px + 4, ecto.py + 14);
+
+    ctx.restore();
+  },
+};
 
 function renderSomatocarta(canvasId, somato, somatoAnterior = null, lightMode = false) {
   destroyChart(canvasId);
@@ -111,20 +161,18 @@ function renderSomatocarta(canvasId, somato, somatoAnterior = null, lightMode = 
 
   const datasets = [];
 
-  // Punto anterior
   if (somatoAnterior?.x != null && somatoAnterior?.y != null) {
     datasets.push({
       label: 'Anterior',
       data: [{ x: somatoAnterior.x, y: somatoAnterior.y }],
-      backgroundColor: 'rgba(148,163,184,0.7)',
+      backgroundColor: 'rgba(148,163,184,0.75)',
       borderColor: '#94a3b8',
-      borderWidth: 2,
-      pointRadius: 7,
-      pointHoverRadius: 9,
+      borderWidth: 1.5,
+      pointRadius: 6,
+      pointHoverRadius: 8,
     });
   }
 
-  // Punto actual
   if (somato?.x != null && somato?.y != null) {
     datasets.push({
       label: 'Actual',
@@ -132,14 +180,15 @@ function renderSomatocarta(canvasId, somato, somatoAnterior = null, lightMode = 
       backgroundColor: 'rgba(79,70,229,0.9)',
       borderColor: '#818cf8',
       borderWidth: 2,
-      pointRadius: 9,
-      pointHoverRadius: 11,
+      pointRadius: 8,
+      pointHoverRadius: 10,
     });
   }
 
   _charts[canvasId] = new Chart(canvas, {
     type: 'scatter',
     data: { datasets },
+    plugins: [_somatoTrianglePlugin],
     options: {
       responsive: true,
       maintainAspectRatio: false,
@@ -153,7 +202,7 @@ function renderSomatocarta(canvasId, somato, somatoAnterior = null, lightMode = 
           titleColor: '#111827',
           bodyColor: '#374151',
           callbacks: {
-            label: ctx => ` (${ctx.raw.x?.toFixed(1)}, ${ctx.raw.y?.toFixed(1)})`,
+            label: ctx => ` ${ctx.dataset.label} (${ctx.raw.x?.toFixed(1)}, ${ctx.raw.y?.toFixed(1)})`,
           },
         },
       },
@@ -165,20 +214,14 @@ function renderSomatocarta(canvasId, somato, somatoAnterior = null, lightMode = 
           ticks: {
             color: '#9ca3af',
             stepSize: 3,
-            callback: v => v === -9 ? '← Endo' : v === 9 ? 'Ecto →' : v === 0 ? '0' : '',
+            callback: v => (v % 3 === 0 && v !== -9 && v !== 9) ? v : '',
           },
         },
         y: {
-          min: -4, max: 16,
+          min: -5, max: 12,
           grid: { color: '#f3f4f6' },
           border: { display: false },
           ticks: { display: false },
-          title: {
-            display: true,
-            text: 'Meso ↑',
-            color: '#9ca3af',
-            font: { size: 11 },
-          },
         },
       },
     },
