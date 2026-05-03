@@ -165,125 +165,24 @@ function renderSomatocarta(canvasId, somato, somatoAnterior = null, lightMode = 
           ticks: {
             color: '#9ca3af',
             stepSize: 3,
-            callback: v => v === -9 ? '← Endo' : v === 9 ? 'Ecto →' : v,
+            callback: v => v === -9 ? '← Endo' : v === 9 ? 'Ecto →' : v === 0 ? '0' : '',
           },
         },
         y: {
           min: -4, max: 16,
           grid: { color: '#f3f4f6' },
           border: { display: false },
-          ticks: {
+          ticks: { display: false },
+          title: {
+            display: true,
+            text: 'Meso ↑',
             color: '#9ca3af',
-            stepSize: 4,
-            callback: v => v === 16 ? 'Meso' : v,
+            font: { size: 11 },
           },
-          title: { display: false },
         },
       },
     },
   });
-}
-
-// ── Somatocarta (canvas nativo — DEPRECADO, usar renderSomatocarta) ───────────
-function _renderSomatocartaCanvas(canvasId, somato, somatoAnterior = null, lightMode = false) {
-  const canvas = document.getElementById(canvasId);
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width;
-  const H = canvas.height;
-  ctx.clearRect(0, 0, W, H);
-
-  const mx = 32, my = 24;
-  const w = W - 2 * mx;
-  const h = H - 2 * my;
-  const xMin = -9, xMax = 9, yMin = -4, yMax = 16;
-
-  function toCanvas(sx, sy) {
-    return [
-      mx + (sx - xMin) / (xMax - xMin) * w,
-      my + h - (sy - yMin) / (yMax - yMin) * h,
-    ];
-  }
-
-  // Fondo
-  ctx.fillStyle = lightMode ? '#f9fafb' : '#0f172a';
-  ctx.fillRect(0, 0, W, H);
-
-  const gridColor = lightMode ? '#e5e7eb' : '#1e293b';
-  const axisColor = lightMode ? '#d1d5db' : '#334155';
-  const labelColor = lightMode ? '#9ca3af' : '#64748b';
-
-  // Grilla
-  ctx.strokeStyle = gridColor;
-  ctx.lineWidth = 1;
-  for (let x = xMin; x <= xMax; x++) {
-    const [cx0, cy0] = toCanvas(x, yMin);
-    const [cx1, cy1] = toCanvas(x, yMax);
-    ctx.beginPath(); ctx.moveTo(cx0, cy0); ctx.lineTo(cx1, cy1); ctx.stroke();
-  }
-  for (let y = yMin; y <= yMax; y += 2) {
-    const [cx0, cy0] = toCanvas(xMin, y);
-    const [cx1, cy1] = toCanvas(xMax, y);
-    ctx.beginPath(); ctx.moveTo(cx0, cy0); ctx.lineTo(cx1, cy1); ctx.stroke();
-  }
-
-  // Ejes
-  ctx.strokeStyle = axisColor;
-  ctx.lineWidth = 1.5;
-  const [ax0, ay0] = toCanvas(0, yMin); const [ax1, ay1] = toCanvas(0, yMax);
-  ctx.beginPath(); ctx.moveTo(ax0, ay0); ctx.lineTo(ax1, ay1); ctx.stroke();
-  const [bx0, by0] = toCanvas(xMin, 0); const [bx1, by1] = toCanvas(xMax, 0);
-  ctx.beginPath(); ctx.moveTo(bx0, by0); ctx.lineTo(bx1, by1); ctx.stroke();
-
-  // Etiquetas
-  ctx.fillStyle = labelColor;
-  ctx.font = '10px Inter, system-ui, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('← Endo', mx + w * 0.15, H - 6);
-  ctx.fillText('Ecto →',  mx + w * 0.85, H - 6);
-  ctx.save();
-  ctx.translate(11, H / 2);
-  ctx.rotate(-Math.PI / 2);
-  ctx.fillText('Meso', 0, 0);
-  ctx.restore();
-
-  // Punto anterior
-  if (somatoAnterior?.x !== null && somatoAnterior?.y !== null) {
-    const [px, py] = toCanvas(somatoAnterior.x, somatoAnterior.y);
-    ctx.beginPath(); ctx.arc(px, py, 6, 0, Math.PI * 2);
-    ctx.fillStyle = lightMode ? '#d1d5db' : '#475569';
-    ctx.fill();
-    ctx.strokeStyle = lightMode ? '#9ca3af' : '#64748b';
-    ctx.lineWidth = 1.5; ctx.stroke();
-    if (somato?.x !== null && somato?.y !== null) {
-      const [cx, cy] = toCanvas(somato.x, somato.y);
-      ctx.beginPath();
-      ctx.setLineDash([4, 4]);
-      ctx.moveTo(px, py); ctx.lineTo(cx, cy);
-      ctx.strokeStyle = lightMode ? '#9ca3af' : '#475569';
-      ctx.lineWidth = 1.5; ctx.stroke();
-      ctx.setLineDash([]);
-    }
-  }
-
-  // Punto actual
-  if (somato?.x !== null && somato?.y !== null) {
-    const [px, py] = toCanvas(somato.x, somato.y);
-    ctx.beginPath(); ctx.arc(px, py, 12, 0, Math.PI * 2);
-    ctx.fillStyle = '#4f46e520'; ctx.fill();
-    ctx.beginPath(); ctx.arc(px, py, 7, 0, Math.PI * 2);
-    ctx.fillStyle = '#4f46e5'; ctx.fill();
-    ctx.strokeStyle = '#818cf8'; ctx.lineWidth = 2; ctx.stroke();
-    const textColor = lightMode ? '#111827' : '#e2e8f0';
-    ctx.fillStyle = textColor;
-    ctx.font = 'bold 10px Inter, system-ui, sans-serif';
-    ctx.textAlign = 'left';
-    const label = `${somato.endo?.toFixed(1) ?? '-'} - ${somato.meso?.toFixed(1) ?? '-'} - ${somato.ecto?.toFixed(1) ?? '-'}`;
-    ctx.fillText(label, px + 10, py - 4);
-    ctx.fillStyle = labelColor;
-    ctx.font = '9px Inter, system-ui, sans-serif';
-    ctx.fillText(`(${somato.x?.toFixed(1)}, ${somato.y?.toFixed(1)})`, px + 10, py + 8);
-  }
 }
 
 // ── Radar Kerr ────────────────────────────────────────────────────────────────
