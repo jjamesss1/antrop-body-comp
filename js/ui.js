@@ -760,24 +760,24 @@ function renderResultadosPanel(res, med, resAnt, medAnt) {
   const sum6Prev = resAnt?.sumas?.sum6;
   _setResCard('res-sum6', sum6?.toFixed(0) ?? '—', 'res-sum6-delta', sum6, sum6Prev, true);
 
-  renderResComposicion(res.kerr);
-  renderResSomatotipo(res.somato, resAnt?.somato);
-  renderResIndices(res, med);
-  renderResPliegues(med, medAnt);
-  renderResKerrTabla(res.kerr, resAnt?.kerr);
+  try { renderResComposicion(res.kerr); } catch(e) { console.error('[renderResComposicion]', e); }
+  try { renderResSomatotipo(res.somato, resAnt?.somato); } catch(e) { console.error('[renderResSomatotipo]', e); }
+  try { renderResIndices(res, med); } catch(e) { console.error('[renderResIndices]', e); }
+  try { renderResPliegues(med, medAnt); } catch(e) { console.error('[renderResPliegues]', e); }
+  try { renderResKerrTabla(res.kerr, resAnt?.kerr); } catch(e) { console.error('[renderResKerrTabla]', e); }
 
   const sum3 = res.sumas?.sum3;
   const sum8 = res.sumas?.sum8;
   const p3   = res.sumas?.percentil3;
-  setText2('res-sum3',       sum3?.toFixed(0));
-  setText2('res-sum3-pct',   p3?.toFixed(1));
-  setText2('res-sum6b',      sum6?.toFixed(0));
-  setText2('res-sum8',       sum8?.toFixed(0));
+  setText2('res-sum3',          sum3?.toFixed(0));
+  setText2('res-sum3-pct',      p3?.toFixed(1));
+  setText2('res-sum6b',         sum6?.toFixed(0));
+  setText2('res-sum8',          sum8?.toFixed(0));
   setText2('res-idx-musc-oseo', res.indices?.musculo_oseo?.toFixed(3));
   setText2('res-idx-adip-musc', res.indices?.adiposo_muscular?.toFixed(3));
-  setText2('res-hb',         res.hb?.bmr_kcal?.toFixed(0));
+  setText2('res-hb',            res.hb?.bmr_kcal?.toFixed(0));
 
-  if (medAnt) renderComparacionBanner(medAnt);
+  if (medAnt) try { renderComparacionBanner(medAnt); } catch(e) { console.error('[renderComparacionBanner]', e); }
 }
 
 function _setResCard(valId, valStr, deltaId, curr, prev, reverseGood) {

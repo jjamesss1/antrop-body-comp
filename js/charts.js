@@ -102,9 +102,90 @@ function renderKerrPie(canvasId, kerr) {
   });
 }
 
-// ── Somatocarta ───────────────────────────────────────────────────────────────
+// ── Somatocarta (Chart.js scatter) ────────────────────────────────────────────
 
 function renderSomatocarta(canvasId, somato, somatoAnterior = null, lightMode = false) {
+  destroyChart(canvasId);
+  const canvas = document.getElementById(canvasId);
+  if (!canvas || !somato) return;
+
+  const datasets = [];
+
+  // Punto anterior
+  if (somatoAnterior?.x != null && somatoAnterior?.y != null) {
+    datasets.push({
+      label: 'Anterior',
+      data: [{ x: somatoAnterior.x, y: somatoAnterior.y }],
+      backgroundColor: 'rgba(148,163,184,0.7)',
+      borderColor: '#94a3b8',
+      borderWidth: 2,
+      pointRadius: 7,
+      pointHoverRadius: 9,
+    });
+  }
+
+  // Punto actual
+  if (somato?.x != null && somato?.y != null) {
+    datasets.push({
+      label: 'Actual',
+      data: [{ x: somato.x, y: somato.y }],
+      backgroundColor: 'rgba(79,70,229,0.9)',
+      borderColor: '#818cf8',
+      borderWidth: 2,
+      pointRadius: 9,
+      pointHoverRadius: 11,
+    });
+  }
+
+  _charts[canvasId] = new Chart(canvas, {
+    type: 'scatter',
+    data: { datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 300 },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#ffffff',
+          borderColor: '#e5e7eb',
+          borderWidth: 1,
+          titleColor: '#111827',
+          bodyColor: '#374151',
+          callbacks: {
+            label: ctx => ` (${ctx.raw.x?.toFixed(1)}, ${ctx.raw.y?.toFixed(1)})`,
+          },
+        },
+      },
+      scales: {
+        x: {
+          min: -9, max: 9,
+          grid: { color: '#f3f4f6' },
+          border: { display: false },
+          ticks: {
+            color: '#9ca3af',
+            stepSize: 3,
+            callback: v => v === -9 ? '← Endo' : v === 9 ? 'Ecto →' : v,
+          },
+        },
+        y: {
+          min: -4, max: 16,
+          grid: { color: '#f3f4f6' },
+          border: { display: false },
+          ticks: {
+            color: '#9ca3af',
+            stepSize: 4,
+            callback: v => v === 16 ? 'Meso' : v,
+          },
+          title: { display: false },
+        },
+      },
+    },
+  });
+}
+
+// ── Somatocarta (canvas nativo — DEPRECADO, usar renderSomatocarta) ───────────
+function _renderSomatocartaCanvas(canvasId, somato, somatoAnterior = null, lightMode = false) {
   const canvas = document.getElementById(canvasId);
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
